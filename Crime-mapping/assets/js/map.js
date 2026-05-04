@@ -206,7 +206,7 @@ function escapeHtml(value) {
         .replace(/'/g, "&#39;");
 }
 
-let markerStyle = "dot";
+let markerStyle = "icon";
 let activeTypes = new Set();
 let reportLatLng = null;
 let reportTypes = [];

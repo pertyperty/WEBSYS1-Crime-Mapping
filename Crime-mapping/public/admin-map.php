@@ -67,8 +67,8 @@ $csrfToken = csrf_token();
             <div class="filter-group">
                 <label class="filter-label">Marker Style</label>
                 <div class="toggle-row">
-                    <button type="button" class="toggle-btn is-active" data-style="dot">Colored dots</button>
-                    <button type="button" class="toggle-btn" data-style="icon">Category icon</button>
+                    <button type="button" class="toggle-btn is-active" data-style="icon">Category icon</button>
+                    <button type="button" class="toggle-btn " data-style="dot">Colored dots</button>
                 </div>
             </div>
 
