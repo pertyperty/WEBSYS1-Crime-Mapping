@@ -141,18 +141,13 @@ if (isset($_SESSION['barangay_id'])) {
     <div class="page-shell">
         <header class="site-header">
             <div class="brand">
-                <span class="brand-mark"></span>
+                <img class="brand-logo" src="../assets/images/logo/la-trinidad.png" alt="La Trinidad logo" />
                 <div>
                     <div class="brand-title">Crime Mapping</div>
                     <div class="brand-subtitle">Barangay Officer</div>
                 </div>
             </div>
-            <nav class="site-nav">
-                <a href="barangay-dashboard.php">Dashboard</a>
-                <a href="barangay-map.php">Map</a>
-                <a class="is-active" href="barangay-incidents.php">Incidents</a>
-                <a href="auth-logout.php">Logout</a>
-            </nav>
+            <?php require_once __DIR__ . '/_navbar.php'; render_navbar('incidents', 'barangay'); ?>
         </header>
 
         <main class="incidents-container">

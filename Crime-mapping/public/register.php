@@ -24,13 +24,7 @@ $csrfToken = csrf_token();
                     <div class="brand-subtitle">Create an account</div>
                 </div>
             </div>
-            <nav class="site-nav">
-                <a href="index.php">Dashboard</a>
-                <a href="map.php">Map</a>
-                <a href="about.php">About & FAQ</a>
-                <a href="login.php">Login</a>
-                <a class="nav-cta is-active" href="register.php">Register</a>
-            </nav>
+            <?php require_once __DIR__ . '/_navbar.php'; render_navbar('register', 'public'); ?>
         </header>
 
         <main class="auth-card">

@@ -17,18 +17,15 @@ requireRole(['barangay']);
     <div class="page-shell">
         <header class="site-header">
             <div class="brand">
-                <span class="brand-mark"></span>
+                <img class="brand-logo" src="../assets/images/logo/la-trinidad.png" alt="La Trinidad" />
                 <div>
                     <div class="brand-title">Barangay Dashboard</div>
                     <div class="brand-subtitle">Incident verification and updates</div>
                 </div>
             </div>
-            <nav class="site-nav">
-                <a href="barangay-dashboard.php" class="is-active">Dashboard</a>
-                <a href="barangay-map.php">Map</a>
-                <a href="barangay-incidents.php">Incidents</a>
-                <a href="auth-logout.php">Logout</a>
-            </nav>
+            <?php require_once __DIR__ . '/_navbar.php'; render_navbar('dashboard', 'barangay'); ?>
+            <div class="mini-map" id="mini-map" style="width:180px;height:120px;margin-left:16px;border-radius:6px;overflow:hidden;border:1px solid #ddd;">
+            </div>
         </header>
 
         <main>
@@ -119,6 +116,9 @@ requireRole(['barangay']);
                 data.incidents.slice(0, 10).forEach(incident => {
                     const row = document.createElement('div');
                     row.className = 'table-row';
+                    row.setAttribute('data-id', incident.id || incident.incident_id || '');
+                    row.setAttribute('data-lat', incident.lat || incident.latitude || '');
+                    row.setAttribute('data-lng', incident.lng || incident.longitude || '');
                     row.innerHTML = `
                         <div>${incident.title}</div>
                         <div>${statusLabels[incident.status] || incident.status}</div>
@@ -140,4 +140,37 @@ requireRole(['barangay']);
         }
 
         loadDashboard();
+    </script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script>
+        // Mini map: when clicking a row, show the location and allow opening full map
+        async function initMiniMap() {
+            try {
+                const mini = L.map('mini-map', { zoomControl: false, attributionControl: false }).setView([16.455, 120.59], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mini);
+                window.miniMap = mini;
+            } catch (e) { console.error(e); }
+        }
+
+        document.addEventListener('click', (ev) => {
+            const row = ev.target.closest('.table-row');
+            if (!row) return;
+            const lat = row.getAttribute('data-lat');
+            const lng = row.getAttribute('data-lng');
+            const incidentId = row.getAttribute('data-id');
+            if (lat && lng && window.miniMap) {
+                try {
+                    window.miniMap.setView([parseFloat(lat), parseFloat(lng)], 15);
+                    if (window.miniMarker) window.miniMap.removeLayer(window.miniMarker);
+                    window.miniMarker = L.marker([parseFloat(lat), parseFloat(lng)]).addTo(window.miniMap);
+                } catch (e) {}
+            }
+            if (incidentId) {
+                // open full map with incident selected
+                const link = `map.php?incident=${encodeURIComponent(incidentId)}`;
+                window.open(link, '_blank');
+            }
+        });
+
+        initMiniMap();
     </script>

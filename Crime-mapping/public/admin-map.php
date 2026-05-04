@@ -81,18 +81,13 @@ $csrfToken = csrf_token();
             <main class="map-stage">
             <header class="map-topbar">
                 <div class="brand">
-                    <span class="brand-mark"></span>
+                    <img class="brand-logo" src="../assets/images/logo/la-trinidad.png" alt="La Trinidad logo" />
                     <div>
                         <div class="brand-title">La Trinidad Crime Mapping</div>
                         <div class="brand-subtitle">Admin global view</div>
                     </div>
                 </div>
-                <nav class="map-nav">
-                    <a href="admin-dashboard.php">Dashboard</a>
-                    <a class="is-active" href="admin-map.php">Map</a>
-                    <a href="admin-incidents.php">Incidents</a>
-                    <a href="auth-logout.php">Logout</a>
-                </nav>
+                <?php require_once __DIR__ . '/_navbar.php'; render_navbar('map', 'admin'); ?>
             </header>
 
             <button id="hamburger-filters" class="hamburger-btn" aria-label="Open filters">
@@ -226,6 +221,10 @@ $csrfToken = csrf_token();
         const userBarangayId = null;
         const userBarangayName = null;
         window.userRole = 'admin';
+        window.currentUser = {
+            id: <?php echo json_encode($_SESSION['user_id'] ?? null); ?>,
+            username: <?php echo json_encode($_SESSION['username'] ?? null); ?>
+        };
         window.csrfToken = <?php echo json_encode($csrfToken); ?>;
     </script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>

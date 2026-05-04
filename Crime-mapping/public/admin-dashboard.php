@@ -23,12 +23,7 @@ requireRole(['admin']);
                     <div class="brand-subtitle">System-wide monitoring</div>
                 </div>
             </div>
-            <nav class="site-nav">
-                <a href="admin-dashboard.php" class="is-active">Dashboard</a>
-                <a href="admin-map.php">Map</a>
-                <a href="admin-incidents.php">Incidents</a>
-                <a href="auth-logout.php">Logout</a>
-            </nav>
+            <?php require_once __DIR__ . '/_navbar.php'; render_navbar('dashboard', 'admin'); ?>
         </header>
 
         <main>

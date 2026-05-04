@@ -79,18 +79,13 @@ init_secure_session();
             <main class="map-stage">
             <header class="map-topbar">
                 <div class="brand">
-                    <img class="brand-logo" src="../assets/images/logo/latri.png" alt="La Trinidad logo" />
+                    <img class="brand-logo" src="../assets/images/logo/la-trinidad.png" alt="La Trinidad logo" />
                     <div>
                         <div class="brand-title">La Trinidad Crime Mapping</div>
                         <div class="brand-subtitle">Interactive map view</div>
                     </div>
                 </div>
-                <nav class="map-nav">
-                    <a href="index.php">Dashboard</a>
-                    <a class="is-active" href="map.php">Map</a>
-                    <a href="about.php">About & FAQ</a>
-                    <a href="login.php">Login</a>
-                </nav>
+                    <?php require_once __DIR__ . '/_navbar.php'; render_navbar('map', 'public'); ?>
             </header>
 
             <!-- Hamburger button to toggle filters (top-left of map) -->
@@ -223,6 +218,12 @@ init_secure_session();
 
     <script>
         window.csrfToken = <?php echo json_encode(csrf_token()); ?>;
+        window.userRole = <?php echo json_encode($_SESSION['role'] ?? null); ?>;
+        window.currentUser = {
+            id: <?php echo json_encode($_SESSION['user_id'] ?? null); ?>,
+            username: <?php echo json_encode($_SESSION['username'] ?? null); ?>,
+            barangay_id: <?php echo json_encode($_SESSION['barangay_id'] ?? null); ?>
+        };
     </script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="../assets/js/map.js"></script>

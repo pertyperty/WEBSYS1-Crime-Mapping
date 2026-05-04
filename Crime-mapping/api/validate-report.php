@@ -28,6 +28,48 @@ function buildIncidentVisibilityClause(?string $viewerRole, ?int $viewerUserId, 
     return 'i.is_public = 1';
 }
 
+function ensureValidationStorage(PDO $pdo): void
+{
+    $tableStmt = $pdo->prepare('
+        SELECT COUNT(*) AS count
+        FROM information_schema.tables
+        WHERE table_schema = DATABASE()
+          AND table_name = :table_name
+    ');
+    $tableStmt->execute([':table_name' => 'incident_validations']);
+
+    if ((int) ($tableStmt->fetch()['count'] ?? 0) === 0) {
+        throw new RuntimeException('Validation storage is not available.');
+    }
+
+    $indexStmt = $pdo->prepare('
+        SELECT index_name, GROUP_CONCAT(column_name ORDER BY seq_in_index) AS columns_csv
+        FROM information_schema.statistics
+        WHERE table_schema = DATABASE()
+          AND table_name = :table_name
+          AND non_unique = 0
+        GROUP BY index_name
+    ');
+    $indexStmt->execute([':table_name' => 'incident_validations']);
+    $indexes = [];
+
+    foreach ($indexStmt->fetchAll() as $row) {
+        $indexes[$row['index_name']] = $row['columns_csv'] ?? '';
+    }
+
+    if (!in_array('incident_id,user_id', $indexes, true) && !in_array('user_id,incident_id', $indexes, true)) {
+        $pdo->exec('ALTER TABLE incident_validations ADD UNIQUE KEY ux_incident_validations_user (incident_id, user_id)');
+    }
+
+    if (!in_array('incident_id,guest_token', $indexes, true) && !in_array('guest_token,incident_id', $indexes, true)) {
+        $pdo->exec('ALTER TABLE incident_validations ADD UNIQUE KEY ux_incident_validations_guest (incident_id, guest_token)');
+    }
+
+    if (!in_array('incident_id,reaction', $indexes, true) && !in_array('reaction,incident_id', $indexes, true)) {
+        $pdo->exec('ALTER TABLE incident_validations ADD INDEX ix_incident_validations_incident_reaction (incident_id, reaction)');
+    }
+}
+
 // Handle GET request - fetch counts and user reaction
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (!isset($_GET['incident_id'])) {
@@ -102,8 +144,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
 // Handle POST request - submit/toggle validation
 require_csrf_token();
+$pdo->beginTransaction();
+
+try {
+    ensureValidationStorage($pdo);
+} catch (Throwable $error) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => 'Validation storage is not ready.']);
+    exit;
+}
+
 $payload = json_decode(file_get_contents('php://input'), true);
 if (!$payload) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     http_response_code(400);
     echo json_encode(['ok' => false, 'error' => 'Invalid request payload.']);
     exit;
@@ -112,6 +171,9 @@ if (!$payload) {
 $required = ['incident_id', 'reaction'];
 foreach ($required as $field) {
     if (!isset($payload[$field]) || $payload[$field] === '') {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         http_response_code(422);
         echo json_encode(['ok' => false, 'error' => 'Missing required fields.']);
         exit;
@@ -126,6 +188,9 @@ $visibilityClause = buildIncidentVisibilityClause($viewerRole, $viewerUserId, $v
 // Validate reaction value
 $validReactions = ['credible', 'not_credible'];
 if (!in_array($reaction, $validReactions, true)) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     http_response_code(422);
     echo json_encode(['ok' => false, 'error' => 'Invalid reaction value.']);
     exit;
@@ -135,6 +200,9 @@ if (!in_array($reaction, $validReactions, true)) {
 $incidentStmt = $pdo->prepare('SELECT incident_id FROM incidents i WHERE i.incident_id = :id AND ' . $visibilityClause);
 $incidentStmt->execute(array_merge([':id' => $incidentId], $visibilityParams));
 if (!$incidentStmt->fetch()) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     http_response_code(404);
     echo json_encode(['ok' => false, 'error' => 'Incident not found.']);
     exit;
@@ -182,23 +250,33 @@ if ($existing && $existing['reaction'] === $reaction) {
     $deleteStmt->execute([':id' => $existing['validation_id']]);
     $isRemoved = true;
 } else {
-    // Delete old vote if exists (switching reactions)
-    if ($existing) {
-        $deleteStmt = $pdo->prepare('DELETE FROM incident_validations WHERE validation_id = :id');
-        $deleteStmt->execute([':id' => $existing['validation_id']]);
+    if ($userId) {
+        $insertStmt = $pdo->prepare('
+            INSERT INTO incident_validations (incident_id, user_id, guest_token, reaction)
+            VALUES (:incident_id, :user_id, NULL, :reaction)
+            ON DUPLICATE KEY UPDATE
+                reaction = VALUES(reaction),
+                guest_token = NULL
+        ');
+        $insertStmt->execute([
+            ':incident_id' => $incidentId,
+            ':user_id' => $userId,
+            ':reaction' => $reaction
+        ]);
+    } else {
+        $insertStmt = $pdo->prepare('
+            INSERT INTO incident_validations (incident_id, user_id, guest_token, reaction)
+            VALUES (:incident_id, NULL, :guest_token, :reaction)
+            ON DUPLICATE KEY UPDATE
+                reaction = VALUES(reaction),
+                user_id = NULL
+        ');
+        $insertStmt->execute([
+            ':incident_id' => $incidentId,
+            ':guest_token' => $guestToken,
+            ':reaction' => $reaction
+        ]);
     }
-
-    // Insert new vote
-    $insertStmt = $pdo->prepare('
-        INSERT INTO incident_validations (incident_id, user_id, guest_token, reaction)
-        VALUES (:incident_id, :user_id, :guest_token, :reaction)
-    ');
-    $insertStmt->execute([
-        ':incident_id' => $incidentId,
-        ':user_id' => $userId,
-        ':guest_token' => $guestToken,
-        ':reaction' => $reaction
-    ]);
     $isRemoved = false;
 }
 
@@ -235,6 +313,10 @@ if ($userId) {
     $userReactionStmt->execute([':incident_id' => $incidentId, ':guest_token' => $guestToken]);
     $result = $userReactionStmt->fetch();
     $userReaction = $result ? $result['reaction'] : null;
+}
+
+if ($pdo->inTransaction()) {
+    $pdo->commit();
 }
 
 echo json_encode([

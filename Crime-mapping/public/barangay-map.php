@@ -92,18 +92,13 @@ $csrfToken = csrf_token();
             <main class="map-stage">
             <header class="map-topbar">
                 <div class="brand">
-                    <span class="brand-mark"></span>
+                    <img class="brand-logo" src="../assets/images/logo/la-trinidad.png" alt="La Trinidad logo" />
                     <div>
                         <div class="brand-title">La Trinidad Crime Mapping</div>
                         <div class="brand-subtitle">Barangay area view</div>
                     </div>
                 </div>
-                <nav class="map-nav">
-                    <a href="barangay-dashboard.php">Dashboard</a>
-                    <a class="is-active" href="barangay-map.php">Map</a>
-                    <a href="barangay-incidents.php">Incidents</a>
-                    <a href="auth-logout.php">Logout</a>
-                </nav>
+                <?php require_once __DIR__ . '/_navbar.php'; render_navbar('map', 'barangay'); ?>
             </header>
 
             <button id="hamburger-filters" class="hamburger-btn" aria-label="Open filters">
@@ -237,6 +232,11 @@ $csrfToken = csrf_token();
         const userBarangayId = <?php echo isset($_SESSION['barangay_id']) ? json_encode($_SESSION['barangay_id']) : 'null'; ?>;
         const userBarangayName = <?php echo $barangayName ? json_encode($barangayName) : 'null'; ?>;
         window.userRole = 'barangay';
+        window.currentUser = {
+            id: <?php echo json_encode($_SESSION['user_id'] ?? null); ?>,
+            username: <?php echo json_encode($_SESSION['username'] ?? null); ?>,
+            barangay_id: <?php echo json_encode($_SESSION['barangay_id'] ?? null); ?>
+        };
         window.csrfToken = <?php echo json_encode($csrfToken); ?>;
     </script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>

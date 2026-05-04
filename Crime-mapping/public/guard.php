@@ -6,7 +6,14 @@ function requireRole(array $roles): void
 {
     $role = $_SESSION['role'] ?? null;
     if (!$role || !in_array($role, $roles, true)) {
-        header('Location: login.php');
+        $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
+        $next = basename($requestPath);
+        $location = 'login.php';
+        if ($next !== '' && $next !== 'login.php' && $next !== 'auth-logout.php') {
+            $location .= '?next=' . urlencode($next);
+        }
+
+        header('Location: ' . $location);
         exit;
     }
 }

@@ -84,6 +84,7 @@ const detailsTitle = document.getElementById("details-title");
 const detailsBody = document.getElementById("details-body");
 const markerStyleButtons = document.querySelectorAll(".toggle-btn");
 const reportPanel = document.getElementById("report-panel");
+const resetButton = document.getElementById("reset-filters");
 
 const filtersPanel = document.querySelector('.map-filters');
 const toggleFiltersBtn = document.getElementById('toggle-filters');
@@ -212,6 +213,21 @@ let reportLatLng = null;
 let reportTypes = [];
 let currentIncidentId = null;
 let filterTimer = null;
+let tempMarker = null;
+
+async function reverseGeocode(lat, lng) {
+    try {
+        const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}`);
+        if (!resp.ok) return null;
+        const json = await resp.json();
+        // prefer address.road + house_number + city
+        if (json && json.display_name) return json.display_name;
+        return null;
+    } catch (e) {
+        console.error('Reverse geocode failed', e);
+        return null;
+    }
+}
 
 function buildTypeFilters() {
     typeFilters.innerHTML = "";
@@ -350,7 +366,7 @@ function renderMarkers() {
         markersLayer.clearLayers();
 
         incidents
-            .filter((incident) => activeTypes.has(incident.type))
+            .filter((incident) => (activeTypes.size ? activeTypes.has(incident.type) : true))
             .filter((incident) => (barangayFilter && barangayFilter.value ? incident.barangay === barangayFilter.value : true))
             .filter((incident) => (statusFilter && statusFilter.value ? incident.status === statusFilter.value : true))
             .filter((incident) => isWithinDateRange(incident.date))
@@ -370,17 +386,6 @@ function renderMarkers() {
     } catch (error) {
         console.error("Error rendering markers:", error);
     }
-}
-
-function showDetails(incident) {
-    currentIncidentId = incident.id;
-    detailsPanel.classList.add("is-open");
-    detailsTitle.textContent = "Selected report";
-    const safeTitle = escapeHtml(incident.title);
-    detailsBody.innerHTML = `
-        <p><strong>${safeTitle}</strong></p>
-        <p class="muted">Full details are shown in the detail panel.</p>
-    `;
 }
 
 async function loadIncidentDetail(incidentId) {
@@ -718,7 +723,6 @@ if (statusFilter) statusFilter.addEventListener("change", loadIncidents);
 if (dateStart) dateStart.addEventListener("change", loadIncidents);
 if (dateEnd) dateEnd.addEventListener("change", loadIncidents);
 
-const resetButton = document.getElementById("reset-filters");
 if (resetButton) {
     resetButton.addEventListener("click", () => {
         resetFilters();
@@ -806,6 +810,24 @@ map.on('click', (event) => {
         if (!detailsBody) return;
 
         if (nearby.length === 0) {
+            // If user can report, open report panel at this location
+            if (userRole === 'registered' || userRole === 'barangay') {
+                // place a temporary marker and open report form
+                try {
+                    if (typeof tempMarker !== 'undefined' && tempMarker) {
+                        try { markersLayer.removeLayer(tempMarker); } catch(e){}
+                    }
+                    tempMarker = L.marker([latlng.lat, latlng.lng], { draggable: true }).addTo(markersLayer);
+                    setReportCoords(latlng);
+                    openReportPanel();
+                    // reverse geocode and display nearest address
+                    try { reverseGeocode(latlng.lat, latlng.lng).then(addr => { if (reportCoords) reportCoords.value = addr || `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`; }); } catch(e){}
+                } catch (e) {
+                    console.error('Failed to place temporary marker', e);
+                }
+                return;
+            }
+
             detailsTitle.textContent = 'No pins here';
             detailsBody.innerHTML = '<p class="muted">There are no incidents at this location.</p>';
             return;
@@ -939,4 +961,6 @@ loadFilters().then(() => {
     });
 }).catch(error => {
     console.error("Error in initialization:", error);
+    // Ensure incidents still load even if filters failed
+    try { loadIncidents(); } catch (e) { console.error('Failed to load incidents after filters error', e); }
 });

@@ -24,13 +24,7 @@ $csrfToken = csrf_token();
                     <div class="brand-subtitle">Secure login</div>
                 </div>
             </div>
-            <nav class="site-nav">
-                <a href="index.php">Dashboard</a>
-                <a href="map.php">Map</a>
-                <a href="about.php">About & FAQ</a>
-                <a class="is-active" href="login.php">Login</a>
-                <a class="nav-cta" href="register.php">Register</a>
-            </nav>
+            <?php require_once __DIR__ . '/_navbar.php'; render_navbar('login', 'public'); ?>
         </header>
 
         <main class="auth-card">
@@ -56,6 +50,15 @@ $csrfToken = csrf_token();
         const loginForm = document.getElementById("login-form");
         const loginStatus = document.getElementById("login-status");
         const csrfToken = <?php echo json_encode($csrfToken); ?>;
+        const nextPage = new URLSearchParams(window.location.search).get("next");
+
+        function getSafeRedirect(fallbackRedirect) {
+            if (nextPage && !nextPage.includes("://") && !nextPage.startsWith("//")) {
+                return nextPage;
+            }
+
+            return fallbackRedirect;
+        }
 
         loginForm.addEventListener("submit", async (event) => {
             event.preventDefault();
@@ -82,7 +85,7 @@ $csrfToken = csrf_token();
                 }
 
                 loginStatus.textContent = "Login successful.";
-                window.location.href = result.data.redirect;
+                window.location.href = getSafeRedirect(result.data.redirect);
             } catch (error) {
                 console.error("Login failed", error);
                 loginStatus.textContent = "Login failed. Please try again.";

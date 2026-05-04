@@ -24,13 +24,7 @@ init_secure_session();
                     <div class="brand-subtitle">Benguet, Philippines</div>
                 </div>
             </div>
-            <nav class="site-nav">
-                <a class="is-active" href="index.php">Dashboard</a>
-                <a href="map.php">Map</a>
-                <a href="about.php">About & FAQ</a>
-                <a href="login.php">Login</a>
-                <a class="nav-cta" href="register.php">Register</a>
-            </nav>
+            <?php require_once __DIR__ . '/_navbar.php'; render_navbar('dashboard', 'public'); ?>
         </header>
 
         <main>

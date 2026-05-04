@@ -1,7 +1,6 @@
 <?php
 require __DIR__ . '/../api/security.php';
 init_secure_session();
-# NIGGA
 ?>
 
 <!DOCTYPE html>
@@ -25,13 +24,7 @@ init_secure_session();
                     <div class="brand-subtitle">About the project</div>
                 </div>
             </div>
-            <nav class="site-nav">
-                <a href="index.php">Dashboard</a>
-                <a href="map.php">Map</a>
-                <a class="is-active" href="about.php">About & FAQ</a>
-                <a href="login.php">Login</a>
-                <a class="nav-cta" href="register.php">Register</a>
-            </nav>
+            <?php require_once __DIR__ . '/_navbar.php'; render_navbar('about', 'public'); ?>
         </header>
 
         <main>

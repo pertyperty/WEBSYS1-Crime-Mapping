@@ -91,7 +91,8 @@ body::before {
 .site-nav {
     display: flex;
     align-items: center;
-    gap: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
     font-size: 14px;
 }
 
@@ -112,6 +113,44 @@ body::before {
 .nav-cta {
     background: var(--accent);
     color: #ffffff !important;
+    font-weight: 600;
+}
+
+.nav-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    color: var(--text);
+    text-decoration: none;
+    background: rgba(15, 23, 42, 0.04);
+    white-space: nowrap;
+}
+
+.nav-avatar,
+.nav-avatar-letter {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    flex: 0 0 28px;
+}
+
+.nav-avatar {
+    object-fit: cover;
+}
+
+.nav-avatar-letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.nav-user-name {
     font-weight: 600;
 }
 
@@ -574,18 +613,6 @@ body::before {
     border-bottom: 1px solid var(--border);
     background: var(--surface);
     flex: 0 0 72px;
-}
-
-.map-nav a {
-    color: var(--muted);
-    margin-left: 14px;
-    text-decoration: none;
-    font-size: 13px;
-}
-
-.map-nav a.is-active,
-.map-nav a:hover {
-    color: var(--text);
 }
 
 .map-full {
