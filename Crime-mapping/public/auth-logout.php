@@ -1,5 +1,6 @@
 <?php
-session_start();
+require __DIR__ . '/../api/security.php';
+init_secure_session();
 
 // Clear session
 $_SESSION = [];

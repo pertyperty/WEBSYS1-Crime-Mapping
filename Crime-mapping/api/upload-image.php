@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
-session_start();
+require __DIR__ . '/security.php';
+init_secure_session();
 
 require __DIR__ . '/db.php';
 
@@ -9,6 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['ok' => false, 'error' => 'Method not allowed.']);
     exit;
 }
+
+require_csrf_token();
 
 if (!isset($_POST['incident_id']) || !isset($_FILES['image'])) {
     http_response_code(400);

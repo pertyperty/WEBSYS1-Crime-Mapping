@@ -78,6 +78,13 @@ const imageCarousel = document.getElementById("image-carousel");
 const detailImageInput = document.getElementById("detail-image-input");
 const uploadStatus = document.getElementById("upload-status");
 const closeModal = document.getElementById("close-modal");
+const csrfToken = window.csrfToken || "";
+
+function csrfHeaders(extraHeaders = {}) {
+    return csrfToken
+        ? { ...extraHeaders, "X-CSRF-Token": csrfToken }
+        : extraHeaders;
+}
 
 function escapeHtml(value) {
     return String(value ?? "")
@@ -478,7 +485,9 @@ async function submitValidation(reaction) {
         const response = await fetch(`${apiBase}/validate-report.php`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                ...csrfHeaders({
+                    "Content-Type": "application/json"
+                })
             },
             body: JSON.stringify({
                 incident_id: currentIncidentId,
@@ -553,6 +562,7 @@ if (detailImageInput) {
         try {
             const response = await fetch(`${apiBase}/upload-image.php`, {
                 method: "POST",
+                headers: csrfHeaders(),
                 body: formData
             });
 
@@ -608,7 +618,9 @@ if (reportForm) {
             const response = await fetch(`${apiBase}/report.php`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    ...csrfHeaders({
+                        "Content-Type": "application/json"
+                    })
                 },
                 body: JSON.stringify(payload)
             });

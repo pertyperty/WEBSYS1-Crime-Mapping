@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
-session_start();
+require __DIR__ . '/security.php';
+init_secure_session();
 require __DIR__ . '/db.php';
 
 $typesParam = isset($_GET['types']) ? trim($_GET['types']) : '';

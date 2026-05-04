@@ -113,7 +113,7 @@ CREATE TABLE incident_validations (
     incident_id INT NOT NULL,
     user_id INT NULL,
     guest_token VARCHAR(64) NULL,
-    reaction ENUM('up', 'down') NOT NULL,
+    reaction ENUM('credible', 'not_credible') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (incident_id) REFERENCES incidents(incident_id)
@@ -194,27 +194,3 @@ INSERT INTO crime_types (category, type_name) VALUES
 ('public_order', 'Vandalism'),
 ('traffic', 'Reckless Driving'),
 ('status_offense', 'Curfew Violation');
-
--- Seed admin account (replace with hashed password in real setup)
-INSERT INTO users (username, email, password_hash, role)
-VALUES ('admin', 'admin@crime.local', 'admin123', 'admin');
-
--- Seed barangay accounts
-INSERT INTO users (username, email, contact, password_hash, role, barangay_id)
-VALUES
-('brgy_alapang', 'alapang@crime.local', '+639000000001', 'barangay123', 'barangay', 1),
-('brgy_alno', 'alno@crime.local', '+639000000002', 'barangay123', 'barangay', 2),
-('brgy_ambiong', 'ambiong@crime.local', '+639000000003', 'barangay123', 'barangay', 3),
-('brgy_bahong', 'bahong@crime.local', '+639000000004', 'barangay123', 'barangay', 4),
-('brgy_balili', 'balili@crime.local', '+639000000005', 'barangay123', 'barangay', 5),
-('brgy_beckel', 'beckel@crime.local', '+639000000006', 'barangay123', 'barangay', 6),
-('brgy_betag', 'betag@crime.local', '+639000000007', 'barangay123', 'barangay', 7),
-('brgy_bineng', 'bineng@crime.local', '+639000000008', 'barangay123', 'barangay', 8),
-('brgy_cruz', 'cruz@crime.local', '+639000000009', 'barangay123', 'barangay', 9),
-('brgy_lubas', 'lubas@crime.local', '+639000000010', 'barangay123', 'barangay', 10),
-('brgy_pico', 'pico@crime.local', '+639000000011', 'barangay123', 'barangay', 11),
-('brgy_poblacion', 'poblacion@crime.local', '+639000000012', 'barangay123', 'barangay', 12),
-('brgy_puguis', 'puguis@crime.local', '+639000000013', 'barangay123', 'barangay', 13),
-('brgy_shilan', 'shilan@crime.local', '+639000000014', 'barangay123', 'barangay', 14),
-('brgy_tawang', 'tawang@crime.local', '+639000000015', 'barangay123', 'barangay', 15),
-('brgy_wangal', 'wangal@crime.local', '+639000000016', 'barangay123', 'barangay', 16);

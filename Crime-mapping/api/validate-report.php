@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
-session_start();
+require __DIR__ . '/security.php';
+init_secure_session();
 
 require __DIR__ . '/db.php';
 
@@ -100,6 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 // Handle POST request - submit/toggle validation
+require_csrf_token();
 $payload = json_decode(file_get_contents('php://input'), true);
 if (!$payload) {
     http_response_code(400);
@@ -147,7 +149,13 @@ if (!$userId) {
         $guestToken = $_COOKIE['guest_token'];
     } else {
         $guestToken = bin2hex(random_bytes(32));
-        setcookie('guest_token', $guestToken, time() + (365 * 24 * 60 * 60), '/');
+        setcookie('guest_token', $guestToken, [
+            'expires' => time() + (365 * 24 * 60 * 60),
+            'path' => '/',
+            'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
     }
 }
 

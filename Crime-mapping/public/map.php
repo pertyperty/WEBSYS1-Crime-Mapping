@@ -1,5 +1,6 @@
 <?php
-session_start();
+require __DIR__ . '/../api/security.php';
+init_secure_session();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -214,6 +215,9 @@ session_start();
         </aside>
     </div>
 
+    <script>
+        window.csrfToken = <?php echo json_encode(csrf_token()); ?>;
+    </script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="../assets/js/map.js"></script>
 </body>

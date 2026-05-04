@@ -1,5 +1,4 @@
 <?php
-session_start();
 require __DIR__ . '/guard.php';
 requireRole(['barangay']);
 
@@ -12,6 +11,7 @@ if (isset($_SESSION['barangay_id'])) {
     $result = $stmt->fetch();
     $barangayName = $result ? $result['barangay_name'] : null;
 }
+$csrfToken = csrf_token();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -222,6 +222,7 @@ if (isset($_SESSION['barangay_id'])) {
         // Barangay-specific filter: get session barangay info from server
         const userBarangayId = <?php echo isset($_SESSION['barangay_id']) ? json_encode($_SESSION['barangay_id']) : 'null'; ?>;
         const userBarangayName = <?php echo $barangayName ? json_encode($barangayName) : 'null'; ?>;
+        window.csrfToken = <?php echo json_encode($csrfToken); ?>;
     </script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="../assets/js/map.js"></script>

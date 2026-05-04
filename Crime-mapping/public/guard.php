@@ -1,7 +1,6 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require __DIR__ . '/../api/security.php';
+init_secure_session();
 
 function requireRole(array $roles): void
 {

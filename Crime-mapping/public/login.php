@@ -1,3 +1,8 @@
+<?php
+require __DIR__ . '/../api/security.php';
+init_secure_session();
+$csrfToken = csrf_token();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -50,6 +55,7 @@
     <script>
         const loginForm = document.getElementById("login-form");
         const loginStatus = document.getElementById("login-status");
+        const csrfToken = <?php echo json_encode($csrfToken); ?>;
 
         loginForm.addEventListener("submit", async (event) => {
             event.preventDefault();
@@ -64,7 +70,8 @@
                 const response = await fetch("../api/auth-login.php", {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
+                        "X-CSRF-Token": csrfToken
                     },
                     body: JSON.stringify(payload)
                 });
