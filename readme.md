@@ -32,18 +32,27 @@ Crime mapping website for La Trinidad, Benguet. Features a public dashboard and 
 - sql/ (database scripts)
 
 ## Database Setup
-1. Start XAMPP (Apache + MySQL).
-2. Open phpMyAdmin and import the schema:
-   - crime-db.sql
-3. Confirm the database name is crime_mapping.
-4. Set local environment variables for database access by copying [Crime-mapping/.env.example](Crime-mapping/.env.example) to a local `.env` file and adjusting values as needed.
 
-## Demo Seed Data
-1. Import [Crime-mapping/sql/seed-demo.sql](Crime-mapping/sql/seed-demo.sql) after the schema, or
-2. Run the CLI loader: `php Crime-mapping/tools/seed.php`
-3. Demo user passwords are now sourced from environment variables instead of being stored in SQL:
-   - `CRIME_SEED_ADMIN_PASSWORD`
-   - `CRIME_SEED_BARANGAY_PASSWORD`
+All SQL files are centralized in the `/database` folder. See [database/README.md](database/README.md) for detailed documentation.
+
+### Quick Setup
+
+1. **Create schema**:
+   ```bash
+   mysql crime_mapping < database/schema.sql
+   ```
+
+2. **Load demo data** (optional):
+   ```bash
+   mysql crime_mapping < database/demo.sql
+   ```
+
+Or use the PHP seed loader:
+   ```bash
+   php Crime-mapping/tools/seed.php
+   ```
+
+Set environment variables for database and demo credentials per [Crime-mapping/.env.example](Crime-mapping/.env.example).
 
 ## Map Behavior (Functional Summary)
 - Default filter shows all incidents
