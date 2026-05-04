@@ -261,6 +261,16 @@ function buildBarangayOptions() {
         console.warn("barangayFilter element not found");
         return;
     }
+    if (isBarangayMode && userBarangayName) {
+        barangayFilter.innerHTML = "";
+        const option = document.createElement("option");
+        option.value = userBarangayName;
+        option.textContent = userBarangayName;
+        barangayFilter.appendChild(option);
+        barangayFilter.value = userBarangayName;
+        return;
+    }
+
     barangayFilter.innerHTML = '<option value="">All barangays</option>';
     barangays.forEach((barangay) => {
         const option = document.createElement("option");
@@ -468,11 +478,13 @@ function setReportCoords(latlng) {
 function resetFilters() {
     activeTypes = new Set(Object.keys(typeLabels));
     buildTypeFilters();
-    barangayFilter.value = "";
-    statusFilter.value = "";
-    dateStart.value = "";
-    dateEnd.value = "";
-    searchInput.value = "";
+    if (barangayFilter) {
+        barangayFilter.value = isBarangayMode && userBarangayName ? userBarangayName : "";
+    }
+    if (statusFilter) statusFilter.value = "";
+    if (dateStart) dateStart.value = "";
+    if (dateEnd) dateEnd.value = "";
+    if (searchInput) searchInput.value = "";
 }
 
 async function loadFilters() {
@@ -515,19 +527,21 @@ function buildQueryParams() {
     if (activeTypes.size) {
         params.set("types", Array.from(activeTypes).join(","));
     }
-    if (barangayFilter.value) {
+    if (barangayFilter && barangayFilter.value) {
         params.set("barangay", barangayFilter.value);
+    } else if (isBarangayMode && userBarangayName) {
+        params.set("barangay", userBarangayName);
     }
-    if (statusFilter.value) {
+    if (statusFilter && statusFilter.value) {
         params.set("status", statusFilter.value);
     }
-    if (dateStart.value) {
+    if (dateStart && dateStart.value) {
         params.set("date_start", dateStart.value);
     }
-    if (dateEnd.value) {
+    if (dateEnd && dateEnd.value) {
         params.set("date_end", dateEnd.value);
     }
-    if (searchInput.value.trim()) {
+    if (searchInput && searchInput.value.trim()) {
         params.set("search", searchInput.value.trim());
     }
     return params.toString();
@@ -634,7 +648,7 @@ notCredibleBtn?.addEventListener("click", () => {
     submitValidation("not_credible");
 });
 
-searchInput.addEventListener("input", scheduleLoadIncidents);
+if (searchInput) searchInput.addEventListener("input", scheduleLoadIncidents);
 if (barangayFilter) barangayFilter.addEventListener("change", loadIncidents);
 if (statusFilter) statusFilter.addEventListener("change", loadIncidents);
 if (dateStart) dateStart.addEventListener("change", loadIncidents);
@@ -819,12 +833,13 @@ loadFilters().then(() => {
         // Set the barangay filter to the user's assigned barangay
         if (barangayFilter) {
             barangayFilter.value = userBarangayName;
-            
-            // Hide the barangay filter group for barangay officers
-            const barangayFilterGroup = barangayFilter.closest('.filter-group');
-            if (barangayFilterGroup) {
-                barangayFilterGroup.style.display = 'none';
-            }
+            barangayFilter.disabled = true;
+            barangayFilter.title = `Limited to your barangay: ${userBarangayName}`;
+        }
+
+        const barangayFilterNotice = document.getElementById("barangay-filter-notice");
+        if (barangayFilterNotice) {
+            barangayFilterNotice.textContent = `Limited to your barangay: ${userBarangayName}`;
         }
         
         // Pre-select barangay in report form
@@ -835,6 +850,7 @@ loadFilters().then(() => {
             const reportBarangayGroup = reportBarangay.closest('label');
             if (reportBarangayGroup) {
                 reportBarangay.disabled = true;
+                reportBarangay.title = `Limited to your barangay: ${userBarangayName}`;
                 reportBarangayGroup.style.opacity = '0.7';
             }
         }

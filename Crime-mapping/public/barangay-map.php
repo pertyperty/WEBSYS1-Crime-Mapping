@@ -57,6 +57,14 @@ $csrfToken = csrf_token();
             </div>
 
             <div class="filter-group">
+                <label class="filter-label">Barangay</label>
+                <select id="barangay-filter" disabled>
+                    <option value=""><?php echo htmlspecialchars($barangayName ?? 'Assigned barangay', ENT_QUOTES, 'UTF-8'); ?></option>
+                </select>
+                <p class="muted filter-hint" id="barangay-filter-notice">Limited to your barangay only.</p>
+            </div>
+
+            <div class="filter-group">
                 <label class="filter-label">Status</label>
                 <select id="status-filter">
                     <option value="">All statuses</option>
