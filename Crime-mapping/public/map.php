@@ -56,7 +56,6 @@ init_secure_session();
                 <label class="filter-label">Status</label>
                 <select id="status-filter">
                     <option value="">All statuses</option>
-                    <option value="pending">Pending</option>
                     <option value="under_investigation">Under investigation</option>
                     <option value="action_taken">Action taken</option>
                     <option value="resolved">Resolved</option>
