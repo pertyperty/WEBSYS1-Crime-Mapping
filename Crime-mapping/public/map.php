@@ -80,7 +80,7 @@ init_secure_session();
             <main class="map-stage">
             <header class="map-topbar">
                 <div class="brand">
-                    <span class="brand-mark"></span>
+                    <img class="brand-logo" src="../assets/images/logo/latri.png" alt="La Trinidad logo" />
                     <div>
                         <div class="brand-title">La Trinidad Crime Mapping</div>
                         <div class="brand-subtitle">Interactive map view</div>
