@@ -26,14 +26,16 @@ $csrfToken = csrf_token();
     <link rel="stylesheet" href="../assets/css/site.css" />
 </head>
 <body class="page-map">
-    <div class="map-shell">
+    <div class="map-shell overlay-mode">
         <aside class="map-filters">
             <div class="filters-header">
                 <div>
                     <div class="eyebrow">Barangay Control</div>
                     <h2>Crime Map - My Area</h2>
                 </div>
-                <a class="btn-tertiary" href="barangay-dashboard.php">Back</a>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <button type="button" id="close-filters" class="btn-tertiary close-filters">Close</button>
+                </div>
             </div>
 
             <div class="filter-group">
@@ -79,7 +81,7 @@ $csrfToken = csrf_token();
             <p class="muted filter-hint">Showing incidents in your assigned area only. Filters apply automatically.</p>
         </aside>
 
-        <main class="map-stage">
+            <main class="map-stage">
             <header class="map-topbar">
                 <div class="brand">
                     <span class="brand-mark"></span>
@@ -95,6 +97,10 @@ $csrfToken = csrf_token();
                     <a href="auth-logout.php">Logout</a>
                 </nav>
             </header>
+
+            <button id="hamburger-filters" class="hamburger-btn" aria-label="Open filters">
+                <svg width="18" height="14" viewBox="0 0 18 14" fill="none" xmlns="http://www.w3.org/2000/svg"><rect y="1" width="18" height="2" rx="1" fill="currentColor"/><rect y="6" width="18" height="2" rx="1" fill="currentColor"/><rect y="11" width="18" height="2" rx="1" fill="currentColor"/></svg>
+            </button>
 
             <div id="map" class="map-canvas map-full"></div>
         </main>

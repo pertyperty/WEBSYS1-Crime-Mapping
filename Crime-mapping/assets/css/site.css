@@ -397,7 +397,13 @@ body::before {
     display: grid;
     grid-template-columns: 320px 1fr 320px;
     min-height: 100vh;
+    height: 100vh;
     background: var(--bg);
+}
+
+/* When using overlay panels, collapse the grid to a single column so overlays float */
+.map-shell.overlay-mode {
+    grid-template-columns: 1fr;
 }
 
 .map-filters,
@@ -413,6 +419,36 @@ body::before {
 .map-details {
     border-right: none;
     border-left: 1px solid var(--border);
+}
+
+/* Overlay/collapsible behavior for panels */
+.map-filters.overlay,
+.map-details.overlay {
+    position: absolute;
+    top: 72px;
+    z-index: 1400;
+    width: 320px;
+    max-height: calc(100vh - 96px);
+    overflow: auto;
+    border-radius: 12px;
+    box-shadow: 0 18px 40px rgba(15,23,42,0.12);
+}
+
+.map-filters.overlay { left: 16px; }
+.map-details.overlay { right: 16px; }
+
+/* Hidden when collapsed */
+.map-filters.overlay:not(.is-open),
+.map-details.overlay:not(.is-open) {
+    transform: translateX(-16px);
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+/* When details on right are closed, slide out to right */
+.map-details.overlay:not(.is-open) {
+    transform: translateX(16px);
 }
 
 .filters-header {
@@ -488,6 +524,39 @@ body::before {
     display: flex;
     flex-direction: column;
 }
+.map-stage { height: 100vh; }
+
+.map-stage { position: relative; }
+
+.hamburger-btn {
+    position: absolute;
+    top: 88px; /* header height (72px) + 16px gap */
+    left: 4em;
+    z-index: 1600;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(15,23,42,0.08);
+}
+
+.hamburger-btn:hover { color: var(--text); transform: translateY(-1px); }
+
+@media (max-width: 1100px) {
+    .hamburger-btn { top: 96px; left: 12px; }
+}
+
+.hamburger-btn.hidden { display: none; }
+
+.filters-header .close-filters {
+    /* keep same appearance as tertiary button but aligned to right */
+}
 
 .map-topbar {
     display: flex;
@@ -496,6 +565,7 @@ body::before {
     padding: 18px 24px;
     border-bottom: 1px solid var(--border);
     background: var(--surface);
+    flex: 0 0 72px;
 }
 
 .map-nav a {
@@ -511,9 +581,16 @@ body::before {
 }
 
 .map-full {
-    flex: 1;
-    height: calc(100vh - 72px);
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0; /* allow flex child to shrink correctly */
 }
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
 
 .details-header {
     display: flex;

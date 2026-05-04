@@ -43,6 +43,36 @@ try {
 }
 
 const markersLayer = L.layerGroup().addTo(map);
+// Restrict map to La Trinidad bounds and animate back if user pans out
+try {
+    const laTrinidadBounds = L.latLngBounds([
+        [16.4150, 120.5600], // SW
+        [16.4800, 120.6050]  // NE
+    ]);
+
+    // Apply as max bounds with a small padding so users can see edge but not escape
+    if (map && laTrinidadBounds.isValid()) {
+        map.setMaxBounds(laTrinidadBounds.pad(0.02));
+
+        function ensureInsideBounds() {
+            const center = map.getCenter();
+            if (!laTrinidadBounds.contains(center)) {
+                const target = laTrinidadBounds.getCenter();
+                try {
+                    map.flyTo([target.lat, target.lng], Math.max(map.getZoom(), 13), { duration: 0.9, easeLinearity: 0.25 });
+                } catch (e) {
+                    try { map.setView([target.lat, target.lng]); } catch(ignore) {}
+                }
+            }
+        }
+
+        map.on('moveend', ensureInsideBounds);
+        map.on('zoomend', ensureInsideBounds);
+        map.on('dragend', ensureInsideBounds);
+    }
+} catch (e) {
+    console.error('Failed to set map bounds for La Trinidad:', e);
+}
 const typeFilters = document.getElementById("type-filters");
 const barangayFilter = document.getElementById("barangay-filter");
 const searchInput = document.getElementById("search-input");
@@ -54,6 +84,87 @@ const detailsTitle = document.getElementById("details-title");
 const detailsBody = document.getElementById("details-body");
 const markerStyleButtons = document.querySelectorAll(".toggle-btn");
 const reportPanel = document.getElementById("report-panel");
+
+const filtersPanel = document.querySelector('.map-filters');
+const toggleFiltersBtn = document.getElementById('toggle-filters');
+const hamburgerFiltersBtn = document.getElementById('hamburger-filters');
+
+// Make panels overlay on narrower screens or when user toggles
+function ensureOverlayMode() {
+    // Use overlay mode for desktop too so filters/details float as overlays
+    if (filtersPanel) filtersPanel.classList.add('overlay');
+    if (detailsPanel) detailsPanel.classList.add('overlay');
+}
+ensureOverlayMode();
+
+
+ensureOverlayMode();
+const mapShell = document.querySelector('.map-shell');
+if (mapShell) mapShell.classList.add('overlay-mode');
+
+if (toggleFiltersBtn && filtersPanel) {
+    toggleFiltersBtn.addEventListener('click', () => {
+        const isOpen = filtersPanel.classList.toggle('is-open');
+        // focus first input when opened
+        if (isOpen) {
+            const input = filtersPanel.querySelector('input, select, button');
+            if (input) input.focus();
+        }
+        showHamburger(!isOpen);
+        // allow CSS transition, then update map size
+        setTimeout(() => { try { map.invalidateSize(); } catch(e){} }, 300);
+    });
+}
+
+if (hamburgerFiltersBtn && filtersPanel) {
+    hamburgerFiltersBtn.addEventListener('click', () => {
+        // open/close filters overlay
+        const isOpen = filtersPanel.classList.toggle('is-open');
+        if (isOpen) {
+            // ensure details panel is closed so filters are visible
+            if (detailsPanel) detailsPanel.classList.remove('is-open');
+            const input = filtersPanel.querySelector('input, select, button');
+            if (input) input.focus();
+        }
+        // hide hamburger when panel opens, show when closed
+        showHamburger(!isOpen);
+        setTimeout(() => { try { map.invalidateSize(); } catch(e){} }, 300);
+    });
+}
+
+// Close button inside filters overlay
+const closeFiltersBtn = document.getElementById('close-filters');
+
+function showHamburger(visible) {
+    if (!hamburgerFiltersBtn) return;
+    if (visible) {
+        hamburgerFiltersBtn.classList.remove('hidden');
+    } else {
+        hamburgerFiltersBtn.classList.add('hidden');
+    }
+}
+
+// Keep hamburger visible initially
+showHamburger(true);
+
+// When filters open via toggle or hamburger, hide hamburger; when closed, show it
+function watchFilterPanel() {
+    if (!filtersPanel) return;
+    const observer = new MutationObserver(() => {
+        const open = filtersPanel.classList.contains('is-open');
+        showHamburger(!open);
+    });
+    observer.observe(filtersPanel, { attributes: true, attributeFilter: ['class'] });
+}
+watchFilterPanel();
+
+if (closeFiltersBtn && filtersPanel) {
+    closeFiltersBtn.addEventListener('click', () => {
+        filtersPanel.classList.remove('is-open');
+        showHamburger(true);
+        setTimeout(() => { try { map.invalidateSize(); } catch(e){} }, 300);
+    });
+}
 const reportForm = document.getElementById("report-form");
 const reportType = document.getElementById("report-type");
 const reportTitle = document.getElementById("report-title");
@@ -591,6 +702,65 @@ map.on("click", (event) => {
         return;
     }
     setReportCoords(event.latlng);
+});
+
+// Open details panel at clicked location and show nearby pins or message
+map.on('click', (event) => {
+    try {
+        const latlng = event.latlng;
+        // find incidents within 50 meters
+        const nearby = incidents.filter(i => {
+            if (!i.lat || !i.lng) return false;
+            try {
+                return L.latLng(i.lat, i.lng).distanceTo(latlng) <= 50;
+            } catch (e) {
+                return false;
+            }
+        });
+
+        // ensure details panel is overlay and visible
+        if (detailsPanel) {
+            detailsPanel.classList.add('is-open');
+            detailsPanel.classList.add('overlay');
+            if (filtersPanel) filtersPanel.classList.remove('is-open');
+        }
+
+        if (!detailsBody) return;
+
+        if (nearby.length === 0) {
+            detailsTitle.textContent = 'No pins here';
+            detailsBody.innerHTML = '<p class="muted">There are no incidents at this location.</p>';
+            return;
+        }
+
+        detailsTitle.textContent = `${nearby.length} incident${nearby.length>1?'s':''} nearby`;
+        // build a simple clickable list
+        const list = document.createElement('div');
+        list.style.display = 'flex';
+        list.style.flexDirection = 'column';
+        list.style.gap = '8px';
+
+        nearby.forEach((inc) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn-secondary';
+            btn.style.textAlign = 'left';
+            btn.textContent = `${inc.title || 'Untitled'} — ${inc.barangay || ''}`;
+            btn.addEventListener('click', () => {
+                // pan map to marker and open detail modal
+                try {
+                    map.setView([inc.lat, inc.lng], Math.max(map.getZoom(), 15));
+                } catch (e) {}
+                openDetailModal(inc);
+            });
+            list.appendChild(btn);
+        });
+
+        detailsBody.innerHTML = '';
+        detailsBody.appendChild(list);
+    } catch (error) {
+        console.error('Error handling map click for details:', error);
+    }
 });
 
 if (reportForm) {

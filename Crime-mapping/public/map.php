@@ -15,14 +15,16 @@ init_secure_session();
     <link rel="stylesheet" href="../assets/css/site.css" />
 </head>
 <body class="page-map">
-    <div class="map-shell">
+    <div class="map-shell overlay-mode">
         <aside class="map-filters">
             <div class="filters-header">
                 <div>
                     <div class="eyebrow">Filters</div>
                     <h2>Crime Map</h2>
                 </div>
-                <a class="btn-tertiary" href="index.php">Back</a>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <button type="button" id="close-filters" class="btn-tertiary close-filters">Close</button>
+                </div>
             </div>
 
             <div class="filter-group">
@@ -75,7 +77,7 @@ init_secure_session();
             <p class="muted filter-hint">Filters apply automatically as you change them.</p>
         </aside>
 
-        <main class="map-stage">
+            <main class="map-stage">
             <header class="map-topbar">
                 <div class="brand">
                     <span class="brand-mark"></span>
@@ -91,6 +93,11 @@ init_secure_session();
                     <a href="login.php">Login</a>
                 </nav>
             </header>
+
+            <!-- Hamburger button to toggle filters (top-left of map) -->
+            <button id="hamburger-filters" class="hamburger-btn" aria-label="Open filters">
+                <svg width="18" height="14" viewBox="0 0 18 14" fill="none" xmlns="http://www.w3.org/2000/svg"><rect y="1" width="18" height="2" rx="1" fill="currentColor"/><rect y="6" width="18" height="2" rx="1" fill="currentColor"/><rect y="11" width="18" height="2" rx="1" fill="currentColor"/></svg>
+            </button>
 
             <div id="map" class="map-canvas map-full"></div>
         </main>
