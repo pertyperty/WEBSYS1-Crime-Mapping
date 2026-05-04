@@ -445,7 +445,9 @@ function viewImageFull(filePath) {
 }
 
 function openDetailModal(incident) {
-    showDetails(incident);
+    // When opening the detail modal, avoid also populating the side details
+    // to prevent duplicate rendering. Ensure the side panel is closed.
+    try { detailsPanel.classList.remove('is-open'); } catch (e) {}
     currentIncidentId = incident.id;
     detailModal.classList.add("is-open");
     uploadStatus.textContent = "";
@@ -646,6 +648,52 @@ credibleBtn?.addEventListener("click", () => {
 
 notCredibleBtn?.addEventListener("click", () => {
     submitValidation("not_credible");
+});
+
+// Verify / Escalate buttons (barangay/admin controls)
+const verifyBtnEl = document.getElementById("verify-btn");
+const escalateBtnEl = document.getElementById("escalate-btn");
+
+async function updateIncidentStatus(newStatus, remarks = '') {
+    if (!currentIncidentId) return;
+    try {
+        if (uploadStatus) uploadStatus.textContent = 'Updating status...';
+        const response = await fetch(`${apiBase}/update-status.php`, {
+            method: 'POST',
+            headers: {
+                ...csrfHeaders({ 'Content-Type': 'application/json' })
+            },
+            body: JSON.stringify({
+                incident_id: currentIncidentId,
+                new_status: newStatus,
+                remarks: remarks
+            })
+        });
+
+        const data = await response.json();
+        if (data.ok) {
+            // refresh markers and detail
+            await loadIncidents();
+            await loadIncidentDetail(currentIncidentId);
+            if (uploadStatus) uploadStatus.textContent = 'Status updated.';
+        } else {
+            console.error('Status update failed', data.error);
+            if (uploadStatus) uploadStatus.textContent = data.error || 'Status update failed.';
+        }
+    } catch (error) {
+        console.error('Failed to update status', error);
+        if (uploadStatus) uploadStatus.textContent = 'Status update failed.';
+    } finally {
+        setTimeout(() => { if (uploadStatus) uploadStatus.textContent = ''; }, 2500);
+    }
+}
+
+verifyBtnEl?.addEventListener('click', () => {
+    updateIncidentStatus('under_investigation', 'Verified via UI');
+});
+
+escalateBtnEl?.addEventListener('click', () => {
+    updateIncidentStatus('action_taken', 'Escalated via UI');
 });
 
 if (searchInput) searchInput.addEventListener("input", scheduleLoadIncidents);
