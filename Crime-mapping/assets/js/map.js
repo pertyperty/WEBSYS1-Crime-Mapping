@@ -653,6 +653,22 @@ notCredibleBtn?.addEventListener("click", () => {
 // Verify / Escalate buttons (barangay/admin controls)
 const verifyBtnEl = document.getElementById("verify-btn");
 const escalateBtnEl = document.getElementById("escalate-btn");
+const userRole = window.userRole || null;
+
+// Hide verify/escalate controls for unauthorized clients as an extra safety layer.
+if (verifyBtnEl || escalateBtnEl) {
+    // If no userRole from server, hide the buttons.
+    if (!userRole || (userRole !== 'admin' && userRole !== 'barangay')) {
+        verifyBtnEl?.classList.add('hidden');
+        escalateBtnEl?.classList.add('hidden');
+        if (verifyBtnEl) verifyBtnEl.style.display = 'none';
+        if (escalateBtnEl) escalateBtnEl.style.display = 'none';
+    } else {
+        // Ensure visible when authorized (admin/barangay)
+        if (verifyBtnEl) verifyBtnEl.style.display = '';
+        if (escalateBtnEl) escalateBtnEl.style.display = '';
+    }
+}
 
 async function updateIncidentStatus(newStatus, remarks = '') {
     if (!currentIncidentId) return;

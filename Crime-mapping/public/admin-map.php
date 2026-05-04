@@ -225,6 +225,7 @@ $csrfToken = csrf_token();
         // Admin mode: no barangay restriction
         const userBarangayId = null;
         const userBarangayName = null;
+        window.userRole = 'admin';
         window.csrfToken = <?php echo json_encode($csrfToken); ?>;
     </script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>

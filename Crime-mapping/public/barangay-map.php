@@ -236,6 +236,7 @@ $csrfToken = csrf_token();
         // Barangay-specific filter: get session barangay info from server
         const userBarangayId = <?php echo isset($_SESSION['barangay_id']) ? json_encode($_SESSION['barangay_id']) : 'null'; ?>;
         const userBarangayName = <?php echo $barangayName ? json_encode($barangayName) : 'null'; ?>;
+        window.userRole = 'barangay';
         window.csrfToken = <?php echo json_encode($csrfToken); ?>;
     </script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
