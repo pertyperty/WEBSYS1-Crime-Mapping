@@ -2,7 +2,22 @@ const apiBase = "../api";
 let incidents = [];
 let isBarangayMode = typeof userBarangayName !== 'undefined' && userBarangayName !== null;
 
-let typeLabels = {};
+function humanizeType(type) {
+    return String(type || "")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+let typeLabels = {
+    violent: "Violent",
+    property: "Property",
+    drug: "Drug",
+    traffic: "Traffic",
+    cybercrime: "Cybercrime",
+    white_collar: "White Collar",
+    public_order: "Public Order",
+    status_offense: "Status Offense"
+};
 
 const typeColors = {
     violent: "#f43f5e",
@@ -207,7 +222,7 @@ function escapeHtml(value) {
 }
 
 let markerStyle = "dot";
-let activeTypes = new Set();
+let activeTypes = new Set(Object.keys(typeLabels));
 let reportLatLng = null;
 let reportTypes = [];
 let currentIncidentId = null;
@@ -486,7 +501,7 @@ async function loadFilters() {
         reportTypes = payload.data.types;
         typeLabels = payload.data.types.reduce((acc, item) => {
             if (!acc[item.category]) {
-                acc[item.category] = item.category.replace(/_/g, " ");
+                acc[item.category] = humanizeType(item.category);
             }
             return acc;
         }, {});
@@ -507,6 +522,11 @@ async function loadFilters() {
         resetFilters();
     } catch (error) {
         console.error("Failed to load filters", error);
+        // Keep the map usable even if the filters endpoint fails.
+        activeTypes = new Set(Object.keys(typeLabels));
+        if (typeFilters) {
+            buildTypeFilters();
+        }
     }
 }
 
@@ -859,4 +879,7 @@ loadFilters().then(() => {
     });
 }).catch(error => {
     console.error("Error in initialization:", error);
+    // Fallback: still try loading incidents so users can see map data.
+    activeTypes = new Set(Object.keys(typeLabels));
+    loadIncidents();
 });
