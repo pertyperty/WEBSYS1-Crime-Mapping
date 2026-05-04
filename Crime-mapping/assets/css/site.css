@@ -69,6 +69,14 @@ body::before {
     box-shadow: 0 12px 30px rgba(6, 182, 212, 0.3);
 }
 
+.brand-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    object-fit: cover;
+    display: block;
+}
+
 .brand-title {
     font-family: var(--font-display);
     font-weight: 600;
