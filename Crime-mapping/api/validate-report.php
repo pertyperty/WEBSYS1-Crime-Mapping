@@ -4,6 +4,29 @@ session_start();
 
 require __DIR__ . '/db.php';
 
+$viewerRole = $_SESSION['role'] ?? null;
+$viewerUserId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+$viewerBarangayId = isset($_SESSION['barangay_id']) ? (int) $_SESSION['barangay_id'] : null;
+
+function buildIncidentVisibilityClause(?string $viewerRole, ?int $viewerUserId, ?int $viewerBarangayId, array &$params): string
+{
+    if ($viewerRole === 'admin') {
+        return '1 = 1';
+    }
+
+    if ($viewerRole === 'barangay' && $viewerBarangayId) {
+        $params[':viewer_barangay_id'] = $viewerBarangayId;
+        return 'i.barangay_id = :viewer_barangay_id';
+    }
+
+    if ($viewerRole === 'registered' && $viewerUserId) {
+        $params[':viewer_user_id'] = $viewerUserId;
+        return '(i.is_public = 1 OR i.reported_by = :viewer_user_id)';
+    }
+
+    return 'i.is_public = 1';
+}
+
 // Handle GET request - fetch counts and user reaction
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (!isset($_GET['incident_id'])) {
@@ -13,10 +36,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 
     $incidentId = (int) $_GET['incident_id'];
+    $visibilityParams = [];
+    $visibilityClause = buildIncidentVisibilityClause($viewerRole, $viewerUserId, $viewerBarangayId, $visibilityParams);
 
     // Check if incident exists
-    $incidentStmt = $pdo->prepare('SELECT incident_id FROM incidents WHERE incident_id = :id');
-    $incidentStmt->execute([':id' => $incidentId]);
+    $incidentStmt = $pdo->prepare('SELECT incident_id FROM incidents i WHERE i.incident_id = :id AND ' . $visibilityClause);
+    $incidentStmt->execute(array_merge([':id' => $incidentId], $visibilityParams));
     if (!$incidentStmt->fetch()) {
         http_response_code(404);
         echo json_encode(['ok' => false, 'error' => 'Incident not found.']);
@@ -93,6 +118,8 @@ foreach ($required as $field) {
 
 $incidentId = (int) $payload['incident_id'];
 $reaction = trim($payload['reaction']);
+$visibilityParams = [];
+$visibilityClause = buildIncidentVisibilityClause($viewerRole, $viewerUserId, $viewerBarangayId, $visibilityParams);
 
 // Validate reaction value
 $validReactions = ['credible', 'not_credible'];
@@ -103,8 +130,8 @@ if (!in_array($reaction, $validReactions, true)) {
 }
 
 // Check if incident exists
-$incidentStmt = $pdo->prepare('SELECT incident_id FROM incidents WHERE incident_id = :id');
-$incidentStmt->execute([':id' => $incidentId]);
+$incidentStmt = $pdo->prepare('SELECT incident_id FROM incidents i WHERE i.incident_id = :id AND ' . $visibilityClause);
+$incidentStmt->execute(array_merge([':id' => $incidentId], $visibilityParams));
 if (!$incidentStmt->fetch()) {
     http_response_code(404);
     echo json_encode(['ok' => false, 'error' => 'Incident not found.']);

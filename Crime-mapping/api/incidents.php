@@ -1,5 +1,6 @@
 <?php
 header('Content-Type: application/json');
+session_start();
 require __DIR__ . '/db.php';
 
 $typesParam = isset($_GET['types']) ? trim($_GET['types']) : '';
@@ -11,8 +12,24 @@ $dateEnd = isset($_GET['date_end']) ? trim($_GET['date_end']) : '';
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 0;
 
+$viewerRole = $_SESSION['role'] ?? null;
+$viewerUserId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+$viewerBarangayId = isset($_SESSION['barangay_id']) ? (int) $_SESSION['barangay_id'] : null;
+
 $where = [];
 $params = [];
+
+if ($viewerRole === 'admin') {
+    // Admins can view all incidents.
+} elseif ($viewerRole === 'barangay' && $viewerBarangayId) {
+    $where[] = 'i.barangay_id = :viewer_barangay_id';
+    $params[':viewer_barangay_id'] = $viewerBarangayId;
+} elseif ($viewerRole === 'registered' && $viewerUserId) {
+    $where[] = '(i.is_public = 1 OR i.reported_by = :viewer_user_id)';
+    $params[':viewer_user_id'] = $viewerUserId;
+} else {
+    $where[] = 'i.is_public = 1';
+}
 
 if ($types) {
     $placeholders = [];
