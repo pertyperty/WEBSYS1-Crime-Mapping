@@ -1,7 +1,9 @@
 <?php
 require __DIR__ . '/../api/security.php';
 init_secure_session();
+# NIGGA
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
