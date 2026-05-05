@@ -43,6 +43,24 @@ $incidentsStmt = $pdo->prepare('
 $incidentsStmt->execute([':barangay_id' => $barangayId]);
 $incidents = $incidentsStmt->fetchAll();
 
+$incidentIds = array_map(fn($incident) => (int) $incident['id'], $incidents);
+$imagesByIncident = [];
+if ($incidentIds) {
+    $placeholders = implode(',', array_fill(0, count($incidentIds), '?'));
+    $imagesStmt = $pdo->prepare("\n        SELECT incident_id, file_path, uploaded_at\n        FROM incident_images\n        WHERE incident_id IN ($placeholders)\n        ORDER BY uploaded_at DESC\n    ");
+    $imagesStmt->execute($incidentIds);
+    foreach ($imagesStmt->fetchAll(PDO::FETCH_ASSOC) as $image) {
+        $imagesByIncident[(int) $image['incident_id']][] = $image['file_path'];
+    }
+}
+
+foreach ($incidents as &$incident) {
+    $incidentId = (int) $incident['id'];
+    $incident['images'] = $imagesByIncident[$incidentId] ?? [];
+    $incident['image_count'] = count($incident['images']);
+}
+unset($incident);
+
 // Calculate KPIs
 $pending = count(array_filter($incidents, fn($i) => $i['status'] === 'pending'));
 $active = count(array_filter($incidents, fn($i) => in_array($i['status'], ['pending', 'under_investigation', 'action_taken'])));

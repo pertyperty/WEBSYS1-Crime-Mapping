@@ -44,6 +44,10 @@ $csrfToken = csrf_token();
                     <input type="text" id="register-contact" name="contact" placeholder="+63900 000 0000" required />
                 </label>
                 <label>
+                    <span>Address</span>
+                    <input type="text" id="register-address" name="address" placeholder="Street, Barangay, City" />
+                </label>
+                <label>
                     <span>Password</span>
                     <input type="password" id="register-password" name="password" placeholder="Create a password" required />
                 </label>
@@ -58,6 +62,17 @@ $csrfToken = csrf_token();
         const registerForm = document.getElementById("register-form");
         const registerStatus = document.getElementById("register-status");
         const csrfToken = <?php echo json_encode($csrfToken); ?>;
+        const nextPage = new URLSearchParams(window.location.search).get("next");
+
+        // Propagate next param to login link so users can sign in and resume
+        (function propagateNextToLogin() {
+            try {
+                const loginLink = document.querySelector('a[href="login.php"]');
+                if (loginLink && nextPage) {
+                    loginLink.href = `login.php?next=${encodeURIComponent(nextPage)}`;
+                }
+            } catch (e) {}
+        })();
 
         registerForm.addEventListener("submit", async (event) => {
             event.preventDefault();
@@ -67,7 +82,9 @@ $csrfToken = csrf_token();
                 name: document.getElementById("register-name").value.trim(),
                 email: document.getElementById("register-email").value.trim(),
                 contact: document.getElementById("register-contact").value.trim(),
-                password: document.getElementById("register-password").value
+                address: document.getElementById("register-address").value.trim(),
+                password: document.getElementById("register-password").value,
+                next: nextPage || null
             };
 
             try {

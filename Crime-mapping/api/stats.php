@@ -38,6 +38,8 @@ $hotspotStmt = $pdo->prepare("
     ORDER BY total DESC
     LIMIT 1
 $");
+$hotspotSql = "\n    SELECT b.barangay_name, COUNT(*) AS total\n    FROM incidents i\n    JOIN barangays b ON i.barangay_id = b.barangay_id\n    WHERE i.occurred_at >= (NOW() - INTERVAL 30 DAY) AND {$visibilityClause}\n    GROUP BY b.barangay_id\n    ORDER BY total DESC\n    LIMIT 1\n";
+$hotspotStmt = $pdo->prepare($hotspotSql);
 $hotspotStmt->execute($visibilityParams);
 $hotspotRow = $hotspotStmt->fetch();
 $hotspot = $hotspotRow ? $hotspotRow['barangay_name'] : '-';

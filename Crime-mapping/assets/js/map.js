@@ -171,6 +171,7 @@ const reportType = document.getElementById("report-type");
 const reportTitle = document.getElementById("report-title");
 const reportDescription = document.getElementById("report-description");
 const reportBarangay = document.getElementById("report-barangay");
+const reportBarangayHidden = document.getElementById("report-barangay-hidden");
 const reportDate = document.getElementById("report-date");
 const reportTime = document.getElementById("report-time");
 const reportSeverity = document.getElementById("report-severity");
@@ -380,13 +381,20 @@ function buildReportBarangayOptions() {
         console.warn("reportBarangay element not found");
         return;
     }
-    reportBarangay.innerHTML = "";
-    barangays.forEach((barangay) => {
-        const option = document.createElement("option");
-        option.value = barangay;
-        option.textContent = barangay;
-        reportBarangay.appendChild(option);
-    });
+
+    // If the reportBarangay is a select, populate options (kept hidden for guests).
+    if (reportBarangay.tagName && reportBarangay.tagName.toLowerCase() === 'select') {
+        reportBarangay.innerHTML = "";
+        barangays.forEach((barangay) => {
+            const option = document.createElement("option");
+            option.value = barangay;
+            option.textContent = barangay;
+            reportBarangay.appendChild(option);
+        });
+    }
+
+    // Ensure hidden input is present and set to empty by default
+    if (reportBarangayHidden) reportBarangayHidden.value = "";
 }
 
 function formatStatus(status) {
@@ -833,6 +841,113 @@ if (reportButton) reportButton.addEventListener("click", openReportPanel);
 if (reportClose) reportClose.addEventListener("click", closeReportPanel);
 if (reportCancel) reportCancel.addEventListener("click", closeReportPanel);
 
+// Restore pending report after login/register if present
+(function tryRestorePendingReport() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('resume_report')) {
+        const raw = sessionStorage.getItem('pending_report');
+        if (!raw) return;
+        try {
+            const draft = JSON.parse(raw);
+            if (draft.latitude && draft.longitude) {
+                const latlng = L.latLng(draft.latitude, draft.longitude);
+                // place marker
+                try { if (tempMarker) markersLayer.removeLayer(tempMarker); } catch(e){}
+                tempMarker = L.marker([latlng.lat, latlng.lng], { draggable: true }).addTo(markersLayer);
+                setReportCoords(latlng);
+                // populate fields
+                if (draft.crime_type_id) reportType.value = draft.crime_type_id;
+                if (draft.title) reportTitle.value = draft.title;
+                if (draft.description) reportDescription.value = draft.description;
+                if (draft.occurred_date) reportDate.value = draft.occurred_date;
+                if (draft.occurred_time) reportTime.value = draft.occurred_time;
+                if (draft.severity) reportSeverity.value = draft.severity;
+                if (draft.barangay) {
+                    if (reportBarangayHidden) reportBarangayHidden.value = draft.barangay;
+                    if (reportBarangay && reportBarangay.tagName && reportBarangay.tagName.toLowerCase() === 'select') reportBarangay.value = draft.barangay;
+                }
+                openReportPanel();
+            }
+        } catch (e) {
+            console.error('Failed to restore pending report', e);
+        }
+    }
+})();
+
+// Report form submit handling (guest redirect + resume)
+if (reportForm) {
+    reportForm.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        reportStatus.textContent = 'Submitting...';
+
+        const draft = {
+            crime_type_id: reportType ? reportType.value : '',
+            title: reportTitle ? reportTitle.value.trim() : '',
+            description: reportDescription ? reportDescription.value.trim() : '',
+            barangay: (reportBarangayHidden && reportBarangayHidden.value) ? reportBarangayHidden.value : (reportBarangay ? reportBarangay.value : ''),
+            occurred_date: reportDate ? reportDate.value : '',
+            occurred_time: reportTime ? reportTime.value : '',
+            severity: reportSeverity ? reportSeverity.value : '',
+            latitude: reportLatLng ? reportLatLng.lat : null,
+            longitude: reportLatLng ? reportLatLng.lng : null
+        };
+
+        // If user not logged in, save draft and redirect to login/register with resume flag
+        if (!window.currentUser || !window.currentUser.id) {
+            try {
+                sessionStorage.setItem('pending_report', JSON.stringify(draft));
+                const next = 'map.php?resume_report=1';
+                // prefer login; user can switch to register from there
+                window.location.href = `login.php?next=${encodeURIComponent(next)}`;
+                return;
+            } catch (e) {
+                console.error('Failed to save draft', e);
+                reportStatus.textContent = 'Unable to save draft. Please try again.';
+                return;
+            }
+        }
+
+        // Submit report for authenticated users
+        try {
+            const payload = {
+                crime_type_id: draft.crime_type_id,
+                title: draft.title,
+                description: draft.description,
+                barangay: draft.barangay,
+                occurred_date: draft.occurred_date,
+                occurred_time: draft.occurred_time,
+                severity: draft.severity,
+                latitude: draft.latitude,
+                longitude: draft.longitude
+            };
+
+            const resp = await fetch(`${apiBase}/report.php`, {
+                method: 'POST',
+                headers: {
+                    ...csrfHeaders({ 'Content-Type': 'application/json' })
+                },
+                body: JSON.stringify(payload)
+            });
+            const result = await resp.json();
+            if (!result.ok) {
+                reportStatus.textContent = result.error || 'Failed to submit report.';
+                return;
+            }
+
+            // clear any pending draft
+            try { sessionStorage.removeItem('pending_report'); } catch(e){}
+
+            reportStatus.textContent = 'Report submitted.';
+            closeReportPanel();
+            await loadIncidents();
+            setTimeout(() => { if (reportStatus) reportStatus.textContent = ''; }, 2500);
+        } catch (e) {
+            console.error('Report submission failed', e);
+            reportStatus.textContent = 'Submission failed. Try again.';
+        }
+    });
+}
+
 map.on("click", (event) => {
     if (!reportPanel || !reportPanel.classList.contains("is-open")) {
         return;
@@ -865,29 +980,52 @@ map.on('click', (event) => {
 
         const validationPanelEl = document.querySelector('.validation-panel');
 
-        if (nearby.length === 0) {
+            if (nearby.length === 0) {
             // hide validation UI when there are no incidents at clicked location
             if (validationPanelEl) validationPanelEl.style.display = 'none';
-            // If user can report, open report panel at this location
-            if (userRole === 'registered' || userRole === 'barangay') {
-                // place a temporary marker and open report form
-                try {
-                    if (typeof tempMarker !== 'undefined' && tempMarker) {
-                        try { markersLayer.removeLayer(tempMarker); } catch(e){}
-                    }
-                    tempMarker = L.marker([latlng.lat, latlng.lng], { draggable: true }).addTo(markersLayer);
-                    setReportCoords(latlng);
-                    openReportPanel();
-                    // reverse geocode and display nearest address
-                    try { reverseGeocode(latlng.lat, latlng.lng).then(addr => { if (reportCoords) reportCoords.value = addr || `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`; }); } catch(e){}
-                } catch (e) {
-                    console.error('Failed to place temporary marker', e);
-                }
-                return;
-            }
 
-            detailsTitle.textContent = 'No pins here';
-            detailsBody.innerHTML = '<p class="muted">There are no incidents at this location.</p>';
+            // Allow anyone (including guests) to place a temporary marker and open report form.
+            try {
+                if (typeof tempMarker !== 'undefined' && tempMarker) {
+                    try { markersLayer.removeLayer(tempMarker); } catch(e){}
+                }
+                tempMarker = L.marker([latlng.lat, latlng.lng], { draggable: true }).addTo(markersLayer);
+                setReportCoords(latlng);
+                openReportPanel();
+
+                // reverse geocode and try to infer barangay from address
+                try {
+                    reverseGeocode(latlng.lat, latlng.lng).then(addr => {
+                        if (reportCoords) reportCoords.value = addr || `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
+                        if (addr && barangays && barangays.length) {
+                            const lowerAddr = addr.toLowerCase();
+                            const match = barangays.find(b => lowerAddr.includes(String(b).toLowerCase()));
+                            if (match) {
+                                if (reportBarangayHidden) reportBarangayHidden.value = match;
+                                if (reportBarangay && reportBarangay.tagName && reportBarangay.tagName.toLowerCase() === 'select') reportBarangay.value = match;
+                            }
+                        }
+                    }).catch(e=>{});
+                } catch(e){}
+
+                // allow dragging to update coords
+                tempMarker.on('dragend', (ev) => {
+                    const p = ev.target.getLatLng();
+                    setReportCoords(p);
+                    reverseGeocode(p.lat, p.lng).then(addr => {
+                        if (addr && barangays && barangays.length) {
+                            const lowerAddr = addr.toLowerCase();
+                            const match = barangays.find(b => lowerAddr.includes(String(b).toLowerCase()));
+                            if (match) {
+                                if (reportBarangayHidden) reportBarangayHidden.value = match;
+                                if (reportBarangay && reportBarangay.tagName && reportBarangay.tagName.toLowerCase() === 'select') reportBarangay.value = match;
+                            }
+                        }
+                    }).catch(()=>{});
+                });
+            } catch (e) {
+                console.error('Failed to place temporary marker', e);
+            }
             return;
         }
         // hide validation until a specific incident is selected from the nearby list

@@ -84,6 +84,14 @@ if ($user['role'] === 'admin') {
     $redirect = 'barangay-dashboard.php';
 }
 
+// If a next param is provided in the payload, honor safe relative redirects
+$next = $payload['next'] ?? null;
+if (is_string($next) && $next) {
+    if (strpos($next, '://') === false && strpos($next, '//') !== 0) {
+        $redirect = $next;
+    }
+}
+
 echo json_encode([
     'ok' => true,
     'data' => [

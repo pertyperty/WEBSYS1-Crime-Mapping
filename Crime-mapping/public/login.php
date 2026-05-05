@@ -52,6 +52,16 @@ $csrfToken = csrf_token();
         const csrfToken = <?php echo json_encode($csrfToken); ?>;
         const nextPage = new URLSearchParams(window.location.search).get("next");
 
+        // If a next param exists, propagate to register link so users can create account and be redirected back
+        (function propagateNextToRegister() {
+            try {
+                const registerLink = document.querySelector('a[href="register.php"]');
+                if (registerLink && nextPage) {
+                    registerLink.href = `register.php?next=${encodeURIComponent(nextPage)}`;
+                }
+            } catch (e) {}
+        })();
+
         function getSafeRedirect(fallbackRedirect) {
             if (nextPage && !nextPage.includes("://") && !nextPage.startsWith("//")) {
                 return nextPage;
@@ -66,7 +76,8 @@ $csrfToken = csrf_token();
 
             const payload = {
                 identity: document.getElementById("login-identity").value.trim(),
-                password: document.getElementById("login-password").value
+                password: document.getElementById("login-password").value,
+                next: nextPage || null
             };
 
             try {

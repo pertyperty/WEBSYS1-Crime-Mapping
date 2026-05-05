@@ -1,6 +1,16 @@
 <?php
 require __DIR__ . '/guard.php';
 requireRole(['barangay']);
+
+require __DIR__ . '/../api/db.php';
+$barangayName = null;
+if (isset($_SESSION['barangay_id'])) {
+    $stmt = $pdo->prepare('SELECT barangay_name FROM barangays WHERE barangay_id = :id');
+    $stmt->execute([':id' => $_SESSION['barangay_id']]);
+    $result = $stmt->fetch();
+    $barangayName = $result ? $result['barangay_name'] : null;
+}
+$csrfToken = csrf_token();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -24,42 +34,49 @@ requireRole(['barangay']);
                 </div>
             </div>
             <?php require_once __DIR__ . '/_navbar.php'; render_navbar('dashboard', 'barangay'); ?>
-            <div class="mini-map" id="mini-map" style="width:180px;height:120px;margin-left:16px;border-radius:6px;overflow:hidden;border:1px solid #ddd;">
-            </div>
         </header>
 
         <main>
             <section class="hero hero-tight">
                 <div class="hero-copy">
                     <p class="eyebrow">Barangay overview</p>
-                    <h1>Monitor reports in your assigned area.</h1>
-                    <p class="lead">Review new submissions, update case statuses, and track barangay safety metrics.</p>
+                    <h1>Monitor reports in <?php echo htmlspecialchars($barangayName ?? 'your area'); ?>.</h1>
+                    <p class="lead">Review new submissions, add incidents directly, and generate monthly or area-based reports for local response work.</p>
                 </div>
             </section>
 
-            <section class="dashboard-kpis">
-                <div class="kpi-card">
-                    <div class="kpi-label">Pending reports</div>
-                    <div class="kpi-value" id="kpi-pending">--</div>
+            <section class="summary-strip">
+                <div class="summary-chip"><span>Pending reports</span><strong id="kpi-pending">--</strong></div>
+                <div class="summary-chip"><span>Active cases</span><strong id="kpi-active">--</strong></div>
+                <div class="summary-chip"><span>Resolved this month</span><strong id="kpi-resolved">--</strong></div>
+                <div class="summary-chip"><span>High risk areas</span><strong id="kpi-high-risk">--</strong></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <h2>Quick Actions</h2>
+                    <div class="dashboard-actions">
+                        <a class="btn-primary" href="barangay-add-incident.php">Add incident</a>
+                        <a class="btn-secondary" href="barangay-incidents.php">Review incidents</a>
+                    </div>
                 </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Active cases</div>
-                    <div class="kpi-value" id="kpi-active">--</div>
+
+                <div class="dashboard-toolbar">
+                    <input type="month" id="report-month" />
+                    <button type="button" class="btn-primary" data-report="monthly">Monthly report</button>
+                    <button type="button" class="btn-secondary" data-report="area">Area report</button>
+                    <button type="button" class="btn-secondary" data-report="crime">Crime report</button>
                 </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Resolved this month</div>
-                    <div class="kpi-value" id="kpi-resolved">--</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">High risk areas</div>
-                    <div class="kpi-value" id="kpi-high-risk">--</div>
+
+                <div class="report-panel-card report-output" id="report-output">
+                    <p class="muted">Choose a report type to generate a summary.</p>
                 </div>
             </section>
 
             <section class="panel">
                 <div class="panel-header">
                     <h2>Report Queue</h2>
-                    <button class="btn-secondary">Export CSV</button>
+                    <a class="btn-secondary" href="barangay-add-incident.php">Enter new incident</a>
                 </div>
                 <div class="data-table" id="incident-table">
                     <div class="table-row header">
@@ -77,27 +94,62 @@ requireRole(['barangay']);
             <div>Update reports promptly to keep the community informed.</div>
         </footer>
     </div>
-</body>
-</html>
 
     <script>
-        const statusLabels = {
-            pending: 'Pending',
-            under_investigation: 'Under investigation',
-            action_taken: 'Action taken',
-            resolved: 'Resolved',
-            dismissed: 'Dismissed'
-        };
+        const apiBase = '../api';
+        const reportMonthInput = document.getElementById('report-month');
+        reportMonthInput.value = new Date().toISOString().slice(0, 7);
 
-        const severityLabels = {
-            low: 'Low',
-            medium: 'Medium',
-            high: 'High'
-        };
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function renderReport(data) {
+            const output = document.getElementById('report-output');
+            if (!data || !data.ok) {
+                output.innerHTML = '<p class="muted">Failed to generate the report.</p>';
+                return;
+            }
+
+            if (data.data.type === 'monthly') {
+                output.innerHTML = `
+                    <div class="summary-chip"><span>Report period</span><strong>${escapeHtml(data.data.month)}</strong></div>
+                    <table>
+                        <thead><tr><th>Status</th><th>Severity</th><th>Count</th></tr></thead>
+                        <tbody>${(data.data.incidents_by_status || []).map((row) => `<tr><td>${escapeHtml(row.status)}</td><td>${escapeHtml(row.severity)}</td><td>${escapeHtml(row.count)}</td></tr>`).join('')}</tbody>
+                    </table>
+                `;
+                return;
+            }
+
+            if (data.data.type === 'area') {
+                output.innerHTML = `
+                    <div class="summary-chip"><span>Report period</span><strong>${escapeHtml(data.data.month)}</strong></div>
+                    <table>
+                        <thead><tr><th>Barangay</th><th>Count</th><th>High severity %</th></tr></thead>
+                        <tbody>${(data.data.barangay_stats || []).map((row) => `<tr><td>${escapeHtml(row.barangay_name)}</td><td>${escapeHtml(row.count)}</td><td>${escapeHtml(Number(row.high_severity_pct || 0).toFixed(1))}%</td></tr>`).join('')}</tbody>
+                    </table>
+                `;
+                return;
+            }
+
+            output.innerHTML = `
+                <div class="summary-chip"><span>Report period</span><strong>${escapeHtml(data.data.month)}</strong></div>
+                <table>
+                    <thead><tr><th>Category</th><th>Crime Type</th><th>Count</th></tr></thead>
+                    <tbody>${(data.data.crime_stats || []).map((row) => `<tr><td>${escapeHtml(row.category)}</td><td>${escapeHtml(row.type_name)}</td><td>${escapeHtml(row.count)}</td></tr>`).join('')}</tbody>
+                </table>
+            `;
+        }
 
         async function loadDashboard() {
             try {
-                const response = await fetch('../api/barangay-incidents.php');
+                const response = await fetch(`${apiBase}/barangay-incidents.php`);
                 const data = await response.json();
 
                 if (!data.ok) {
@@ -105,25 +157,24 @@ requireRole(['barangay']);
                     return;
                 }
 
-                // Update KPIs
                 document.getElementById('kpi-pending').textContent = data.kpis.pending;
                 document.getElementById('kpi-active').textContent = data.kpis.active;
                 document.getElementById('kpi-resolved').textContent = data.kpis.resolved_month;
                 document.getElementById('kpi-high-risk').textContent = data.kpis.high_risk;
 
-                // Populate table
                 const table = document.getElementById('incident-table');
-                data.incidents.slice(0, 10).forEach(incident => {
+                table.innerHTML = '<div class="table-row header"><div>Incident</div><div>Status</div><div>Date</div><div>Severity</div></div>';
+                data.incidents.slice(0, 8).forEach((incident) => {
                     const row = document.createElement('div');
                     row.className = 'table-row';
                     row.setAttribute('data-id', incident.id || incident.incident_id || '');
                     row.setAttribute('data-lat', incident.lat || incident.latitude || '');
                     row.setAttribute('data-lng', incident.lng || incident.longitude || '');
                     row.innerHTML = `
-                        <div>${incident.title}</div>
-                        <div>${statusLabels[incident.status] || incident.status}</div>
-                        <div>${incident.date}</div>
-                        <div>${severityLabels[incident.severity] || incident.severity}</div>
+                        <div>${escapeHtml(incident.title)}</div>
+                        <div>${escapeHtml(incident.status)}</div>
+                        <div>${escapeHtml(incident.date)}</div>
+                        <div>${escapeHtml(incident.severity)}</div>
                     `;
                     table.appendChild(row);
                 });
@@ -131,7 +182,7 @@ requireRole(['barangay']);
                 if (data.incidents.length === 0) {
                     const row = document.createElement('div');
                     row.className = 'table-row';
-                    row.innerHTML = '<div colspan="4">No reports yet.</div>';
+                    row.innerHTML = '<div>No reports yet.</div>';
                     table.appendChild(row);
                 }
             } catch (error) {
@@ -139,38 +190,18 @@ requireRole(['barangay']);
             }
         }
 
-        loadDashboard();
-    </script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script>
-        // Mini map: when clicking a row, show the location and allow opening full map
-        async function initMiniMap() {
-            try {
-                const mini = L.map('mini-map', { zoomControl: false, attributionControl: false }).setView([16.455, 120.59], 13);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mini);
-                window.miniMap = mini;
-            } catch (e) { console.error(e); }
+        async function generateReport(type) {
+            const month = reportMonthInput.value || new Date().toISOString().slice(0, 7);
+            const response = await fetch(`${apiBase}/reports-generate.php?type=${encodeURIComponent(type)}&month=${encodeURIComponent(month)}`);
+            const data = await response.json();
+            renderReport(data);
         }
 
-        document.addEventListener('click', (ev) => {
-            const row = ev.target.closest('.table-row');
-            if (!row) return;
-            const lat = row.getAttribute('data-lat');
-            const lng = row.getAttribute('data-lng');
-            const incidentId = row.getAttribute('data-id');
-            if (lat && lng && window.miniMap) {
-                try {
-                    window.miniMap.setView([parseFloat(lat), parseFloat(lng)], 15);
-                    if (window.miniMarker) window.miniMap.removeLayer(window.miniMarker);
-                    window.miniMarker = L.marker([parseFloat(lat), parseFloat(lng)]).addTo(window.miniMap);
-                } catch (e) {}
-            }
-            if (incidentId) {
-                // open full map with incident selected
-                const link = `map.php?incident=${encodeURIComponent(incidentId)}`;
-                window.open(link, '_blank');
-            }
+        document.querySelectorAll('[data-report]').forEach((button) => {
+            button.addEventListener('click', () => generateReport(button.getAttribute('data-report')));
         });
 
-        initMiniMap();
+        loadDashboard();
     </script>
+</body>
+</html>

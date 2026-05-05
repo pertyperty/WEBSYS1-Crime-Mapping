@@ -140,7 +140,7 @@ init_secure_session();
                 </div>
                 <form id="report-form" class="form-grid">
                     <label>
-                        <span>Coordinates</span>
+                        <span>Location</span>
                         <input id="report-coords" type="text" placeholder="Click on the map to set" readonly />
                     </label>
                     <label>
@@ -155,10 +155,11 @@ init_secure_session();
                         <span>Description</span>
                         <textarea id="report-description" rows="4" placeholder="Describe what happened" required></textarea>
                     </label>
-                    <label>
+                    <label style="display:none;">
                         <span>Barangay</span>
                         <select id="report-barangay" required></select>
                     </label>
+                    <input type="hidden" id="report-barangay-hidden" />
                     <label>
                         <span>Date</span>
                         <input id="report-date" type="date" required />

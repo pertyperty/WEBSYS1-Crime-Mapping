@@ -33,6 +33,8 @@ if ($name === '' || $email === '' || $contact === '' || $password === '') {
 $username = strtolower(preg_replace('/\s+/', '_', $name));
 $username = substr($username, 0, 50);
 $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+$address = trim($payload['address'] ?? '');
+$next = $payload['next'] ?? null;
 
 $check = $pdo->prepare('SELECT user_id FROM users WHERE username = :username OR email = :email');
 $check->execute([':username' => $username, ':email' => $email]);
@@ -42,23 +44,52 @@ if ($check->fetch()) {
     exit;
 }
 
-$insert = $pdo->prepare('INSERT INTO users (username, email, contact, password_hash, role) VALUES (:username, :email, :contact, :password_hash, :role)');
-$insert->execute([
+// Build INSERT dynamically to include address column only if it exists in the users table
+$columns = ['username', 'email', 'contact', 'password_hash', 'role'];
+$placeholders = [':username', ':email', ':contact', ':password_hash', ':role'];
+$params = [
     ':username' => $username,
     ':email' => $email,
     ':contact' => $contact,
     ':password_hash' => $passwordHash,
     ':role' => 'registered'
-]);
+];
+
+if ($address !== '') {
+    try {
+        $colStmt = $pdo->prepare("SELECT COUNT(*) AS cnt FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'address'");
+        $colStmt->execute();
+        $colRow = $colStmt->fetch();
+        if ($colRow && (int)$colRow['cnt'] > 0) {
+            $columns[] = 'address';
+            $placeholders[] = ':address';
+            $params[':address'] = $address;
+        }
+    } catch (Exception $e) {
+        // ignore and continue without address column
+    }
+}
+
+$sql = 'INSERT INTO users (' . implode(', ', $columns) . ') VALUES (' . implode(', ', $placeholders) . ')';
+$insert = $pdo->prepare($sql);
+$insert->execute($params);
 
 $_SESSION['user_id'] = (int) $pdo->lastInsertId();
 $_SESSION['username'] = $username;
 $_SESSION['role'] = 'registered';
 $_SESSION['barangay_id'] = null;
 
+// Determine safe redirect: honor next if it's a relative path (no scheme)
+$redirect = 'index.php';
+if (is_string($next) && $next) {
+    if (strpos($next, '://') === false && strpos($next, '//') !== 0) {
+        $redirect = $next;
+    }
+}
+
 echo json_encode([
     'ok' => true,
     'data' => [
-        'redirect' => 'index.php'
+        'redirect' => $redirect
     ]
 ]);
