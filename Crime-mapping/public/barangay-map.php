@@ -137,10 +137,6 @@ $csrfToken = csrf_token();
                 </div>
             </div>
 
-            <div class="details-actions">
-                <button type="button" class="btn-primary" id="report-crime" style="display:none;">Report a crime</button>
-            </div>
-
             <div class="report-panel" id="report-panel" style="display:none;">
                 <div class="details-header">
                     <div>
@@ -150,6 +146,10 @@ $csrfToken = csrf_token();
                     <button type="button" id="close-report" class="btn-tertiary">Close</button>
                 </div>
                 <form id="report-form" class="form-grid">
+                    <label>
+                        <span>Coordinates</span>
+                        <input id="report-coords" type="text" placeholder="Click on the map to set" readonly />
+                    </label>
                     <label>
                         <span>Crime type</span>
                         <select id="report-type" required></select>
@@ -181,10 +181,6 @@ $csrfToken = csrf_token();
                             <option value="medium">Medium</option>
                             <option value="high">High</option>
                         </select>
-                    </label>
-                    <label>
-                        <span>Coordinates</span>
-                        <input id="report-coords" type="text" placeholder="Click on the map to set" readonly />
                     </label>
                     <div class="report-actions">
                         <button class="btn-primary" type="submit">Submit report</button>

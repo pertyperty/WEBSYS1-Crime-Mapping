@@ -140,6 +140,10 @@ init_secure_session();
                 </div>
                 <form id="report-form" class="form-grid">
                     <label>
+                        <span>Coordinates</span>
+                        <input id="report-coords" type="text" placeholder="Click on the map to set" readonly />
+                    </label>
+                    <label>
                         <span>Crime type</span>
                         <select id="report-type" required></select>
                     </label>
@@ -170,10 +174,6 @@ init_secure_session();
                             <option value="medium">Medium</option>
                             <option value="high">High</option>
                         </select>
-                    </label>
-                    <label>
-                        <span>Coordinates</span>
-                        <input id="report-coords" type="text" placeholder="Click on the map to set" readonly />
                     </label>
                     <div class="report-actions">
                         <button class="btn-primary" type="submit">Submit report</button>

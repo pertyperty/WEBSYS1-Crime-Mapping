@@ -207,6 +207,71 @@ function escapeHtml(value) {
         .replace(/'/g, "&#39;");
 }
 
+function renderIncidentDetailsHtml(incident) {
+    const safeBarangay = escapeHtml(incident.barangay);
+    const safeOccurredAt = escapeHtml(incident.occurred_at || incident.date);
+    const safeStatus = escapeHtml(incident.status ? formatStatus(incident.status) : "");
+    const safeSeverity = escapeHtml(incident.severity);
+    const safeTypeName = escapeHtml(incident.type_name || incident.type || "");
+    const safeReportedBy = escapeHtml(incident.reported_by);
+    const safeDescription = escapeHtml(incident.description);
+
+    return `
+        <div>
+            <p><strong>Barangay:</strong> ${safeBarangay}</p>
+            <p><strong>Date:</strong> ${safeOccurredAt}</p>
+            ${incident.status ? `<p><strong>Status:</strong> ${safeStatus}</p>` : ""}
+            ${incident.severity ? `<p><strong>Severity:</strong> ${safeSeverity}</p>` : ""}
+            ${safeTypeName ? `<p><strong>Type:</strong> ${safeTypeName}</p>` : ""}
+            ${incident.reported_by ? `<p><strong>Reported by:</strong> ${safeReportedBy}</p>` : ""}
+            <p class="muted" style="margin-top: 12px;">${safeDescription}</p>
+        </div>
+    `;
+}
+
+function setValidationSelection(userReaction) {
+    if (!credibleBtn || !notCredibleBtn) return;
+    credibleBtn.classList.remove("is-active");
+    notCredibleBtn.classList.remove("is-active");
+
+    if (userReaction === "credible") {
+        credibleBtn.classList.add("is-active");
+    } else if (userReaction === "not_credible") {
+        notCredibleBtn.classList.add("is-active");
+    }
+}
+
+function clearValidationPanelState() {
+    if (credibleCount) credibleCount.textContent = "0";
+    if (notCredibleCount) notCredibleCount.textContent = "0";
+    setValidationSelection(null);
+}
+
+function openDetailSidebar(incident) {
+    if (!incident || !incident.id) return;
+
+    if (detailsPanel) {
+        detailsPanel.classList.add("is-open");
+        detailsPanel.classList.add("overlay");
+    }
+    if (filtersPanel) filtersPanel.classList.remove("is-open");
+
+    currentIncidentId = incident.id;
+
+    if (detailsTitle) detailsTitle.textContent = incident.title || "Incident";
+    if (detailsBody) detailsBody.innerHTML = '<p class="muted">Loading details...</p>';
+
+    const validationPanelEl = document.querySelector(".validation-panel");
+    if (validationPanelEl) validationPanelEl.style.display = "";
+
+    loadValidationCounts();
+    loadIncidentDetail(incident.id, {
+        titleElement: detailsTitle,
+        infoElement: detailsBody,
+        includeImages: false
+    });
+}
+
 let markerStyle = "icon";
 let activeTypes = new Set();
 let reportLatLng = null;
@@ -380,7 +445,7 @@ function renderMarkers() {
                     `<strong>${safeTitle}</strong><br>${safeBarangay} • ${safeDate}<br>${safeDescription}`,
                     { direction: "top" }
                 );
-                marker.on("click", () => openDetailModal(incident));
+                marker.on("click", () => openDetailSidebar(incident));
             });
         console.log(`Rendered ${incidents.length} markers`);
     } catch (error) {
@@ -388,43 +453,43 @@ function renderMarkers() {
     }
 }
 
-async function loadIncidentDetail(incidentId) {
+async function loadIncidentDetail(incidentId, options = {}) {
+    const {
+        titleElement = modalTitle,
+        infoElement = detailInfo,
+        includeImages = true
+    } = options;
+
     try {
         const response = await fetch(`${apiBase}/incident-detail.php?incident_id=${incidentId}`);
         const data = await response.json();
 
         if (!data.ok) {
-            detailInfo.innerHTML = '<p class="muted">Failed to load incident details.</p>';
+            if (infoElement) {
+                infoElement.innerHTML = '<p class="muted">Failed to load incident details.</p>';
+            }
             return;
         }
 
         const incident = data.incident;
-        modalTitle.textContent = incident.title;
+        if (titleElement) {
+            titleElement.textContent = incident.title;
+        }
 
-        const safeBarangay = escapeHtml(incident.barangay);
-        const safeOccurredAt = escapeHtml(incident.occurred_at);
-        const safeStatus = escapeHtml(formatStatus(incident.status));
-        const safeSeverity = escapeHtml(incident.severity);
-        const safeTypeName = escapeHtml(incident.type_name);
-        const safeReportedBy = escapeHtml(incident.reported_by);
-        const safeDescription = escapeHtml(incident.description);
+        if (infoElement) {
+            infoElement.innerHTML = renderIncidentDetailsHtml(incident);
+        }
 
-        detailInfo.innerHTML = `
-            <div>
-                <p><strong>Barangay:</strong> ${safeBarangay}</p>
-                <p><strong>Date:</strong> ${safeOccurredAt}</p>
-                <p><strong>Status:</strong> ${safeStatus}</p>
-                <p><strong>Severity:</strong> ${safeSeverity}</p>
-                <p><strong>Type:</strong> ${safeTypeName}</p>
-                ${incident.reported_by ? `<p><strong>Reported by:</strong> ${safeReportedBy}</p>` : ''}
-                <p class="muted" style="margin-top: 12px;">${safeDescription}</p>
-            </div>
-        `;
+        if (includeImages) {
+            renderImages(data.images);
+        }
 
-        renderImages(data.images);
+        return data;
     } catch (error) {
         console.error("Failed to load incident detail", error);
-        detailInfo.innerHTML = '<p class="muted">Failed to load incident details.</p>';
+        if (infoElement) {
+            infoElement.innerHTML = '<p class="muted">Failed to load incident details.</p>';
+        }
     }
 }
 
@@ -457,7 +522,11 @@ function openDetailModal(incident) {
     detailModal.classList.add("is-open");
     uploadStatus.textContent = "";
     loadValidationCounts();
-    loadIncidentDetail(incident.id);
+    loadIncidentDetail(incident.id, {
+        titleElement: modalTitle,
+        infoElement: detailInfo,
+        includeImages: true
+    });
 }
 
 function closeDetailModal() {
@@ -592,15 +661,7 @@ async function loadValidationCounts() {
             if (data.ok) {
                 credibleCount.textContent = data.credible || 0;
                 notCredibleCount.textContent = data.not_credible || 0;
-
-                credibleBtn.classList.remove("is-active");
-                notCredibleBtn.classList.remove("is-active");
-
-                if (data.user_reaction === "credible") {
-                    credibleBtn.classList.add("is-active");
-                } else if (data.user_reaction === "not_credible") {
-                    notCredibleBtn.classList.add("is-active");
-                }
+                setValidationSelection(data.user_reaction || null);
             }
         }
     } catch (error) {
@@ -631,16 +692,7 @@ async function submitValidation(reaction) {
         if (data.ok) {
             credibleCount.textContent = data.credible || 0;
             notCredibleCount.textContent = data.not_credible || 0;
-
-            // Update button active states
-            credibleBtn.classList.remove("is-active");
-            notCredibleBtn.classList.remove("is-active");
-
-            if (data.user_reaction === "credible") {
-                credibleBtn.classList.add("is-active");
-            } else if (data.user_reaction === "not_credible") {
-                notCredibleBtn.classList.add("is-active");
-            }
+            setValidationSelection(data.user_reaction || null);
         }
     } catch (error) {
         console.error("Failed to submit validation", error);
@@ -648,10 +700,12 @@ async function submitValidation(reaction) {
 }
 
 credibleBtn?.addEventListener("click", () => {
+    if (!currentIncidentId) return;
     submitValidation("credible");
 });
 
 notCredibleBtn?.addEventListener("click", () => {
+    if (!currentIncidentId) return;
     submitValidation("not_credible");
 });
 
@@ -809,7 +863,11 @@ map.on('click', (event) => {
 
         if (!detailsBody) return;
 
+        const validationPanelEl = document.querySelector('.validation-panel');
+
         if (nearby.length === 0) {
+            // hide validation UI when there are no incidents at clicked location
+            if (validationPanelEl) validationPanelEl.style.display = 'none';
             // If user can report, open report panel at this location
             if (userRole === 'registered' || userRole === 'barangay') {
                 // place a temporary marker and open report form
@@ -832,6 +890,10 @@ map.on('click', (event) => {
             detailsBody.innerHTML = '<p class="muted">There are no incidents at this location.</p>';
             return;
         }
+        // hide validation until a specific incident is selected from the nearby list
+        if (validationPanelEl) validationPanelEl.style.display = 'none';
+        currentIncidentId = null;
+        clearValidationPanelState();
 
         detailsTitle.textContent = `${nearby.length} incident${nearby.length>1?'s':''} nearby`;
         // build a simple clickable list
@@ -847,11 +909,11 @@ map.on('click', (event) => {
             btn.style.textAlign = 'left';
             btn.textContent = `${inc.title || 'Untitled'} — ${inc.barangay || ''}`;
             btn.addEventListener('click', () => {
-                // pan map to marker and open detail modal
+                // pan map to marker and open detail sidebar
                 try {
                     map.setView([inc.lat, inc.lng], Math.max(map.getZoom(), 15));
                 } catch (e) {}
-                openDetailModal(inc);
+                openDetailSidebar(inc);
             });
             list.appendChild(btn);
         });

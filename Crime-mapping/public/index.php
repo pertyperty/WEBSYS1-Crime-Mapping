@@ -18,7 +18,7 @@ init_secure_session();
     <div class="page-shell">
         <header class="site-header">
             <div class="brand">
-                <span class="brand-mark"></span>
+                <img class="brand-logo" src="../assets/images/logo/la-trinidad.png" alt="La Trinidad logo" />
                 <div>
                     <div class="brand-title">La Trinidad Crime Mapping</div>
                     <div class="brand-subtitle">Benguet, Philippines</div>
@@ -62,14 +62,54 @@ init_secure_session();
                             <a class="map-link" href="map.php">Expand</a>
                         </div>
                         <div id="mini-map" class="map-canvas"></div>
-                        <div class="map-legend">
-                            <span class="legend-dot violent"></span> Violent
-                            <span class="legend-dot property"></span> Property
-                            <span class="legend-dot drug"></span> Drug
-                            <span class="legend-dot traffic"></span> Traffic
+                        <div class="map-legend" id="mini-map-legend"></div>
                         </div>
                     </div>
                 </div>
+            </section>
+
+            <section class="panel report-panel report-panel-wide">
+                <div class="panel-header">
+                    <div>
+                        <h2>Last 7 Day Report</h2>
+                        <p class="panel-note">A rolling summary of the latest reports, hotspots, and category mix.</p>
+                    </div>
+                    <span class="pill" id="week-report-range">Last 7 days</span>
+                </div>
+                <div class="week-report-grid">
+                    <div class="week-report-overview">
+                        <div class="week-report-stat">
+                            <span>Total reports</span>
+                            <strong id="week-total">0</strong>
+                        </div>
+                        <div class="week-report-stat">
+                            <span>Average per day</span>
+                            <strong id="week-average">0</strong>
+                        </div>
+                        <div class="week-report-stat">
+                            <span>Busiest day</span>
+                            <strong id="week-busiest">-</strong>
+                        </div>
+                        <div class="week-report-stat">
+                            <span>Top category</span>
+                            <strong id="week-category">-</strong>
+                        </div>
+                    </div>
+                    <div class="week-chart" id="week-chart" aria-label="Seven day report chart"></div>
+                </div>
+            </section>
+
+            <section class="panel carousel-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Recent Crime Images</h2>
+                        <p class="panel-note">Recent incident photos are shown below with captions and a graceful fallback when no image is attached.</p>
+                    </div>
+                </div>
+                <div class="carousel-shell">
+                    <div class="carousel-track" id="crime-carousel-track" aria-live="polite"></div>
+                </div>
+                <div class="carousel-status" id="crime-carousel-status">Loading recent images...</div>
             </section>
 
             <section class="dashboard-grid">
