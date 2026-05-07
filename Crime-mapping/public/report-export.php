@@ -773,8 +773,8 @@ function esc($value): string
             reportContent.innerHTML = `
                 <div class="summary-strip">
                     <div class="summary-card"><div class="label">Barangays listed</div><div class="value">${escapeHtml(rows.length)}</div></div>
-                    <div class="summary-card"><div class="label">Report period</div><div class="value" style="font-size: 18px;">${escapeHtml(data.month)}</div></div>
-                    <div class="summary-card"><div class="label">Top barangay</div><div class="value" style="font-size: 18px;">${escapeHtml(rows[0]?.barangay_name || 'N/A')}</div></div>
+                    <div class="summary-card"><div class="label">Report period</div><div class="value u-fs-18">${escapeHtml(data.month)}</div></div>
+                    <div class="summary-card"><div class="label">Top barangay</div><div class="value u-fs-18">${escapeHtml(rows[0]?.barangay_name || 'N/A')}</div></div>
                     <div class="summary-card"><div class="label">Top count</div><div class="value">${escapeHtml(rows[0]?.count || 0)}</div></div>
                 </div>
                 <table class="summary-table">
@@ -791,8 +791,8 @@ function esc($value): string
             reportContent.innerHTML = `
                 <div class="summary-strip">
                     <div class="summary-card"><div class="label">Crime categories</div><div class="value">${escapeHtml(rows.length)}</div></div>
-                    <div class="summary-card"><div class="label">Report period</div><div class="value" style="font-size: 18px;">${escapeHtml(data.month)}</div></div>
-                    <div class="summary-card"><div class="label">Lead category</div><div class="value" style="font-size: 18px;">${escapeHtml(rows[0]?.category ? humanize(rows[0].category) : 'N/A')}</div></div>
+                    <div class="summary-card"><div class="label">Report period</div><div class="value u-fs-18">${escapeHtml(data.month)}</div></div>
+                    <div class="summary-card"><div class="label">Lead category</div><div class="value u-fs-18">${escapeHtml(rows[0]?.category ? humanize(rows[0].category) : 'N/A')}</div></div>
                     <div class="summary-card"><div class="label">Lead total</div><div class="value">${escapeHtml(rows[0]?.count || 0)}</div></div>
                 </div>
                 <table class="summary-table">
@@ -887,8 +887,8 @@ function esc($value): string
                                 <div class="case-layout">
                                     <div class="case-section">
                                         <h3>Business narrative</h3>
-                                        <p class="case-summary" style="margin-top: 0; color: var(--text);">This report documents the incident case for internal review, operational tracking, and coordination with the appropriate barangay office. The account below preserves the incident description, classification, and follow-up status in a business-report format.</p>
-                                        <div class="case-details" style="margin-top: 14px;">
+                                        <p class="case-summary u-mt-0">This report documents the incident case for internal review, operational tracking, and coordination with the appropriate barangay office. The account below preserves the incident description, classification, and follow-up status in a business-report format.</p>
+                                        <div class="case-details u-mt-14">
                                             ${renderDetailRows([
                                                 { label: 'Narrative summary', value: shortDescription(incident.description) },
                                                 { label: 'Investigation status', value: formatLabel(incident.status || 'open') },
@@ -909,7 +909,7 @@ function esc($value): string
                                                             <span>${escapeHtml(log.created_at || '')}</span>
                                                         </div>
                                                         <p>${escapeHtml(log.remarks || 'No remarks were recorded.')}</p>
-                                                        <div class="subtitle" style="margin-top: 8px; font-style: normal;">${escapeHtml(log.created_by_username || log.created_by_role || 'System')}</div>
+                                                        <div class="subtitle u-mt-8 u-font-normal">${escapeHtml(log.created_by_username || log.created_by_role || 'System')}</div>
                                                     </div>
                                                 `).join('')
                                                 : '<div class="loading">No chronology entries available for this case.</div>'}

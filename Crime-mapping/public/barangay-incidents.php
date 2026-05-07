@@ -63,7 +63,7 @@ if (isset($_SESSION['barangay_id'])) {
                 </div>
 
                 <div class="compact-card-grid" id="incidents-container">
-                    <div class="incidents-empty" style="grid-column:1 / -1;">
+                    <div class="incidents-empty u-span-full">
                         <p>Loading incidents...</p>
                     </div>
                 </div>
@@ -140,14 +140,14 @@ if (isset($_SESSION['barangay_id'])) {
                 renderIncidents(allIncidents);
             } catch (error) {
                 console.error('Failed to load incidents', error);
-                document.getElementById('incidents-container').innerHTML = '<div class="incidents-empty" style="grid-column:1 / -1;"><p style="color: #f43f5e;">Failed to load incidents. Please try again.</p></div>';
+                document.getElementById('incidents-container').innerHTML = '<div class="incidents-empty u-span-full"><p class="u-text-danger">Failed to load incidents. Please try again.</p></div>';
             }
         }
 
         function renderIncidents(incidents) {
             const container = document.getElementById('incidents-container');
             if (!incidents || incidents.length === 0) {
-                container.innerHTML = '<div class="incidents-empty" style="grid-column:1 / -1;"><p>No incidents in your area</p></div>';
+                container.innerHTML = '<div class="incidents-empty u-span-full"><p>No incidents in your area</p></div>';
                 return;
             }
 

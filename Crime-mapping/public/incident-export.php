@@ -544,7 +544,7 @@ $autoPrint = (($_GET['autoprint'] ?? '') === '1');
                 </div>
                 <div class="date-box">
                     <div id="report-date-text"><?php echo date('F j, Y'); ?></div>
-                    <div style="font-size: 13px; color: var(--muted); font-style: italic; margin-top: 6px;">For Immediate Media Distribution</div>
+                    <div class="muted u-fs-13 u-italic">For Immediate Media Distribution</div>
                 </div>
             </div>
 
@@ -641,8 +641,8 @@ $autoPrint = (($_GET['autoprint'] ?? '') === '1');
             reportContent.innerHTML = `
                 <div class="summary-card-row">
                     <div class="summary-card"><div class="label">Barangay scope</div><div class="value">${escapeHtml(rows.length)}</div></div>
-                    <div class="summary-card"><div class="label">Report period</div><div class="value" style="font-size: 18px;">${escapeHtml(data.month)}</div></div>
-                    <div class="summary-card"><div class="label">Highest volume</div><div class="value" style="font-size: 18px;">${escapeHtml(rows[0]?.barangay_name || 'N/A')}</div></div>
+                    <div class="summary-card"><div class="label">Report period</div><div class="value u-fs-18">${escapeHtml(data.month)}</div></div>
+                    <div class="summary-card"><div class="label">Highest volume</div><div class="value u-fs-18">${escapeHtml(rows[0]?.barangay_name || 'N/A')}</div></div>
                     <div class="summary-card"><div class="label">Top count</div><div class="value">${escapeHtml(rows[0]?.count || 0)}</div></div>
                 </div>
                 <table class="summary-table">

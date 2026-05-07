@@ -28,8 +28,8 @@ $csrfToken = csrf_token();
             <?php require_once __DIR__ . '/_navbar.php'; render_navbar('add-incident', 'barangay'); ?>
         </header>
 
-        <main style="max-width: 800px; margin: 0 auto; padding: 24px;">
-            <section class="hero hero-tight" style="margin-bottom: 32px;">
+        <main class="u-content-narrow">
+            <section class="hero hero-tight u-mb-32">
                 <div class="hero-copy">
                     <p class="eyebrow">Incident Reporting</p>
                     <h1>Add a New Crime Report</h1>
@@ -73,9 +73,9 @@ $csrfToken = csrf_token();
                             <option value="high">High</option>
                         </select>
                     </label>
-                    <div>
+                    <div class="form-actions">
                         <button type="submit" class="btn-primary">Submit Report</button>
-                        <button type="button" class="btn-secondary" onclick="window.location.href='barangay-dashboard.php'" style="margin-left:8px;">Cancel</button>
+                        <button type="button" class="btn-secondary" onclick="window.location.href='barangay-dashboard.php'">Cancel</button>
                     </div>
                     <p id="form-status" class="muted"></p>
                 </form>

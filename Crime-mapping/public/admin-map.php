@@ -24,7 +24,7 @@ $csrfToken = csrf_token();
                     <div class="eyebrow">Admin Control</div>
                     <h2>Crime Map - Global View</h2>
                 </div>
-                <div style="display:flex;gap:8px;align-items:center;">
+                <div class="u-hstack">
                     <button type="button" id="close-filters" class="btn-tertiary close-filters">Close</button>
                 </div>
             </div>
@@ -148,7 +148,7 @@ $csrfToken = csrf_token();
                         <span>Description</span>
                         <textarea id="report-description" rows="4" placeholder="Describe what happened" required></textarea>
                     </label>
-                    <label style="display:none;">
+                    <label class="u-hidden">
                         <span>Barangay</span>
                         <select id="report-barangay" required></select>
                     </label>
@@ -183,7 +183,7 @@ $csrfToken = csrf_token();
                         <div class="eyebrow">Incident Details</div>
                         <h2 id="modal-title">Loading...</h2>
                     </div>
-                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <div class="u-hstack u-hstack-wrap">
                         <a id="export-pdf-btn" class="btn-secondary" href="#" target="_blank" rel="noopener">Export PDF</a>
                         <button type="button" id="close-modal" class="btn-tertiary">Close</button>
                     </div>

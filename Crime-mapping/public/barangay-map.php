@@ -34,7 +34,7 @@ $csrfToken = csrf_token();
                     <div class="eyebrow">Barangay Control</div>
                     <h2>Crime Map - My Area</h2>
                 </div>
-                <div style="display:flex;gap:8px;align-items:center;">
+                <div class="u-hstack">
                     <button type="button" id="close-filters" class="btn-tertiary close-filters">Close</button>
                 </div>
             </div>
@@ -159,7 +159,7 @@ $csrfToken = csrf_token();
                         <span>Description</span>
                         <textarea id="report-description" rows="4" placeholder="Describe what happened" required></textarea>
                     </label>
-                    <label style="display:none;">
+                    <label class="u-hidden">
                         <span>Barangay</span>
                         <select id="report-barangay" required></select>
                     </label>

@@ -53,7 +53,7 @@ requireRole(['admin']);
                 </div>
 
                 <div class="compact-card-grid" id="incidents-container">
-                    <div class="incidents-empty" style="grid-column:1 / -1;">
+                    <div class="incidents-empty u-span-full">
                         <p>Loading incidents...</p>
                     </div>
                 </div>
@@ -129,14 +129,14 @@ requireRole(['admin']);
                 renderIncidents(allIncidents);
             } catch (error) {
                 console.error('Failed to load incidents', error);
-                document.getElementById('incidents-container').innerHTML = '<div class="incidents-empty" style="grid-column:1 / -1;"><p style="color: #f43f5e;">Failed to load incidents. Please try again.</p></div>';
+                document.getElementById('incidents-container').innerHTML = '<div class="incidents-empty u-span-full"><p class="u-text-danger">Failed to load incidents. Please try again.</p></div>';
             }
         }
 
         function renderIncidents(incidents) {
             const container = document.getElementById('incidents-container');
             if (!incidents || incidents.length === 0) {
-                container.innerHTML = '<div class="incidents-empty" style="grid-column:1 / -1;"><p>No incidents found</p></div>';
+                container.innerHTML = '<div class="incidents-empty u-span-full"><p>No incidents found</p></div>';
                 return;
             }
 
@@ -168,7 +168,7 @@ requireRole(['admin']);
                             </div>
                             <div class="compact-card-footer">
                                 <span class="incident-mini-note">ID: ${id} ${imageCount ? `• ${imageCount} image${imageCount > 1 ? 's' : ''}` : ''}</span>
-                                <span style="display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end;">
+                                <span class="u-hstack u-hstack-wrap u-hstack-end u-gap-12">
                                     <a href="admin-map.php?incident=${id}" class="link-small" onclick="event.stopPropagation()">View on Map →</a>
                                     <a href="incident-export.php?incident_id=${id}&autoprint=1" class="link-small" target="_blank" rel="noopener" onclick="event.stopPropagation()">Export PDF →</a>
                                 </span>

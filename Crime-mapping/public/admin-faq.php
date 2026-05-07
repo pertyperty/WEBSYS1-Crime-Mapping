@@ -228,7 +228,7 @@ $csrfToken = csrf_token();
                     </div>
                 </div>
                 
-                <div id="faq-status" class="muted" style="margin-bottom: 16px;"></div>
+                <div id="faq-status" class="muted u-mb-16"></div>
                 <div class="faq-list" id="faq-list">
                     <p class="muted">Loading FAQs...</p>
                 </div>
