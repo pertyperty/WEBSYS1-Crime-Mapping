@@ -89,6 +89,7 @@ const resetButton = document.getElementById("reset-filters");
 const filtersPanel = document.querySelector('.map-filters');
 const toggleFiltersBtn = document.getElementById('toggle-filters');
 const hamburgerFiltersBtn = document.getElementById('hamburger-filters');
+const mapShell = document.querySelector('.map-shell');
 
 // Make panels overlay on narrower screens or when user toggles
 function ensureOverlayMode() {
@@ -100,12 +101,17 @@ ensureOverlayMode();
 
 
 ensureOverlayMode();
-const mapShell = document.querySelector('.map-shell');
 if (mapShell) mapShell.classList.add('overlay-mode');
+
+function syncMapChrome() {
+    if (!mapShell || !filtersPanel) return;
+    mapShell.classList.toggle('filters-open', filtersPanel.classList.contains('is-open'));
+}
 
 if (toggleFiltersBtn && filtersPanel) {
     toggleFiltersBtn.addEventListener('click', () => {
         const isOpen = filtersPanel.classList.toggle('is-open');
+        syncMapChrome();
         // focus first input when opened
         if (isOpen) {
             const input = filtersPanel.querySelector('input, select, button');
@@ -121,6 +127,7 @@ if (hamburgerFiltersBtn && filtersPanel) {
     hamburgerFiltersBtn.addEventListener('click', () => {
         // open/close filters overlay
         const isOpen = filtersPanel.classList.toggle('is-open');
+        syncMapChrome();
         if (isOpen) {
             // ensure details panel is closed so filters are visible
             if (detailsPanel) detailsPanel.classList.remove('is-open');
@@ -154,6 +161,7 @@ function watchFilterPanel() {
     const observer = new MutationObserver(() => {
         const open = filtersPanel.classList.contains('is-open');
         showHamburger(!open);
+        syncMapChrome();
     });
     observer.observe(filtersPanel, { attributes: true, attributeFilter: ['class'] });
 }
@@ -163,6 +171,7 @@ if (closeFiltersBtn && filtersPanel) {
     closeFiltersBtn.addEventListener('click', () => {
         filtersPanel.classList.remove('is-open');
         showHamburger(true);
+        syncMapChrome();
         setTimeout(() => { try { map.invalidateSize(); } catch(e){} }, 300);
     });
 }
