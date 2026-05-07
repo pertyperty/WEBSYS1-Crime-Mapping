@@ -49,6 +49,8 @@ try {
         [16.4150, 120.5600], // SW
         [16.4800, 120.6050]  // NE
     ]);
+    const laTrinidadFocus = laTrinidadBounds.getCenter();
+    const minimumLocalZoom = 13;
 
     // Apply as max bounds with a small padding so users can see edge but not escape
     if (map && laTrinidadBounds.isValid()) {
@@ -56,8 +58,19 @@ try {
 
         function ensureInsideBounds() {
             const center = map.getCenter();
+            const zoom = map.getZoom();
+
+            if (zoom < minimumLocalZoom) {
+                try {
+                    map.flyTo([laTrinidadFocus.lat, laTrinidadFocus.lng], minimumLocalZoom, { duration: 0.9, easeLinearity: 0.25 });
+                } catch (e) {
+                    try { map.setView([laTrinidadFocus.lat, laTrinidadFocus.lng], minimumLocalZoom); } catch(ignore) {}
+                }
+                return;
+            }
+
             if (!laTrinidadBounds.contains(center)) {
-                const target = laTrinidadBounds.getCenter();
+                const target = laTrinidadFocus;
                 try {
                     map.flyTo([target.lat, target.lng], Math.max(map.getZoom(), 13), { duration: 0.9, easeLinearity: 0.25 });
                 } catch (e) {
