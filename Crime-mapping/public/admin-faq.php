@@ -206,7 +206,7 @@ $csrfToken = csrf_token();
     <div class="page-shell">
         <header class="site-header">
             <div class="brand">
-                <span class="brand-mark"></span>
+                <img class="brand-logo" src="../assets/images/logo/la-trinidad.png" alt="La Trinidad logo" />
                 <div>
                     <div class="brand-title">FAQ Management</div>
                     <div class="brand-subtitle">Manage help articles</div>
