@@ -59,6 +59,7 @@ $csrfToken = csrf_token();
                     <div class="dashboard-actions">
                         <a class="btn-primary" href="barangay-add-incident.php">Add incident</a>
                         <a class="btn-secondary" href="barangay-incidents.php">Review incidents</a>
+                        <a class="btn-secondary" href="report-export.php?type=forensics&autoprint=1">Export reports</a>
                     </div>
                 </div>
 

@@ -178,6 +178,7 @@ if (isset($_SESSION['barangay_id'])) {
                             <div class="compact-card-footer">
                                 <span class="incident-mini-note">ID: ${id}</span>
                                 <a href="barangay-map.php?incident=${id}" class="link-small" onclick="event.stopPropagation()">View on Map →</a>
+                                <a href="incident-export.php?incident_id=${id}&autoprint=1" class="link-small" target="_blank" rel="noopener" onclick="event.stopPropagation()">Export PDF →</a>
                             </div>
                         </div>
                     </article>
