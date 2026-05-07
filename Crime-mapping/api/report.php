@@ -12,6 +12,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 require_csrf_token();
 
+$userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+$userRole = $_SESSION['role'] ?? null;
+if (!$userId || !in_array($userRole, ['registered', 'barangay', 'admin'], true)) {
+    http_response_code(401);
+    echo json_encode(['ok' => false, 'error' => 'Unauthorized.']);
+    exit;
+}
+
 $payload = json_decode(file_get_contents('php://input'), true);
 if (!$payload) {
     http_response_code(400);
@@ -19,7 +27,7 @@ if (!$payload) {
     exit;
 }
 
-$required = ['crime_type_id', 'title', 'description', 'barangay', 'occurred_date', 'occurred_time', 'severity', 'latitude', 'longitude'];
+$required = ['crime_type_id', 'title', 'description', 'occurred_date', 'occurred_time', 'severity', 'latitude', 'longitude'];
 foreach ($required as $field) {
     if (!isset($payload[$field]) || $payload[$field] === '') {
         http_response_code(422);
@@ -29,7 +37,24 @@ foreach ($required as $field) {
 }
 
 $crimeTypeId = (int) $payload['crime_type_id'];
-$barangayName = trim($payload['barangay']);
+$barangayName = trim((string) ($payload['barangay'] ?? ''));
+if ($barangayName === '' && $userRole === 'barangay') {
+    $barangayId = isset($_SESSION['barangay_id']) ? (int) $_SESSION['barangay_id'] : null;
+    if ($barangayId) {
+        $barangayLookup = $pdo->prepare('SELECT barangay_name FROM barangays WHERE barangay_id = :id');
+        $barangayLookup->execute([':id' => $barangayId]);
+        $row = $barangayLookup->fetch(PDO::FETCH_ASSOC);
+        if ($row && !empty($row['barangay_name'])) {
+            $barangayName = (string) $row['barangay_name'];
+        }
+    }
+}
+
+if ($barangayName === '') {
+    http_response_code(422);
+    echo json_encode(['ok' => false, 'error' => 'Missing barangay.']);
+    exit;
+}
 
 $typeStmt = $pdo->prepare('SELECT crime_type_id FROM crime_types WHERE crime_type_id = :id AND is_active = 1');
 $typeStmt->execute([':id' => $crimeTypeId]);
@@ -51,21 +76,20 @@ if (!$barangayRow) {
 $occurredAt = $payload['occurred_date'] . ' ' . $payload['occurred_time'] . ':00';
 
 // Determine source and visibility
-// 'direct' = officer/admin entry (immediately visible)
-// 'reported' = guest report (pending verification)
-$source = isset($payload['source']) && in_array($payload['source'], ['direct', 'reported']) 
-    ? $payload['source'] 
-    : 'reported';
+// Officers/admins can file entries that are immediately visible (stored as source='verified').
+// Registered users file reports that start as pending (source='reported').
+$requestedSource = isset($payload['source']) ? (string) $payload['source'] : '';
+$isOfficerEntry = in_array($userRole, ['admin', 'barangay'], true) && $requestedSource === 'direct';
+$source = $isOfficerEntry ? 'verified' : 'reported';
 
-$isOfficerEntry = ($source === 'direct');
 $initialStatus = $isOfficerEntry ? 'under_investigation' : 'pending';
 $isPublic = $isOfficerEntry ? 1 : 0;
 
 $insert = $pdo->prepare(
     'INSERT INTO incidents
-    (crime_type_id, title, description, barangay_id, latitude, longitude, occurred_at, severity, status, source, is_public)
+    (crime_type_id, title, description, barangay_id, latitude, longitude, occurred_at, severity, status, source, is_public, reported_by)
     VALUES
-    (:crime_type_id, :title, :description, :barangay_id, :latitude, :longitude, :occurred_at, :severity, :status, :source, :is_public)'
+    (:crime_type_id, :title, :description, :barangay_id, :latitude, :longitude, :occurred_at, :severity, :status, :source, :is_public, :reported_by)'
 );
 
 $insert->execute([
@@ -79,7 +103,8 @@ $insert->execute([
     ':severity' => $payload['severity'],
     ':status' => $initialStatus,
     ':source' => $source,
-    ':is_public' => $isPublic
+    ':is_public' => $isPublic,
+    ':reported_by' => $userId,
 ]);
 
 $incidentId = (int) $pdo->lastInsertId();

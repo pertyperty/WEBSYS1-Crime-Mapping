@@ -1062,7 +1062,7 @@ if (reportForm) {
             severity: draft.severity,
             latitude: draft.latitude,
             longitude: draft.longitude,
-            source: window.userRole ? 'direct' : 'reported'
+            source: (window.userRole === 'admin' || window.userRole === 'barangay') ? 'direct' : 'reported'
         };
 
         if (reportStatus) reportStatus.textContent = window.userRole ? "Adding crime..." : "Submitting report...";

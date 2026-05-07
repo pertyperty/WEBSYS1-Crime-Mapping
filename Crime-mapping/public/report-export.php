@@ -28,6 +28,7 @@ function esc($value): string
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/css/site.css" />
     <style>
         :root {
             --paper: #ffffff;
@@ -48,13 +49,13 @@ function esc($value): string
             background: linear-gradient(180deg, #f7f9fc 0%, var(--bg) 100%);
         }
 
-        .page {
+        .export-page {
             max-width: 1120px;
             margin: 0 auto;
             padding: 24px;
         }
 
-        .topbar {
+        .export-topbar {
             display: flex;
             justify-content: space-between;
             gap: 12px;
@@ -63,7 +64,7 @@ function esc($value): string
             flex-wrap: wrap;
         }
 
-        .brand {
+        .export-brand {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -72,20 +73,20 @@ function esc($value): string
             font-weight: 700;
         }
 
-        .brand img {
+        .export-brand img {
             width: 54px;
             height: 54px;
             border-radius: 14px;
             object-fit: cover;
         }
 
-        .actions {
+        .export-actions {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
         }
 
-        .btn {
+        .export-btn {
             appearance: none;
             border: 1px solid var(--line);
             background: var(--paper);
@@ -98,7 +99,7 @@ function esc($value): string
             cursor: pointer;
         }
 
-        .btn.primary {
+        .export-btn.primary {
             background: var(--accent);
             border-color: var(--accent);
             color: #fff;
@@ -558,8 +559,8 @@ function esc($value): string
 
         @media print {
             body { background: #fff; }
-            .topbar, .controls, .btn { display: none !important; }
-            .page { padding: 0; max-width: none; }
+            .export-topbar, .controls, .export-btn { display: none !important; }
+            .export-page { padding: 0; max-width: none; }
             .sheet { border: 0; box-shadow: none; padding: 0; }
             .entry, .summary-card { break-inside: avoid; }
         }
@@ -587,15 +588,16 @@ function esc($value): string
     </style>
 </head>
 <body>
-    <div class="page">
-        <div class="topbar">
-            <div class="brand">
+    <div class="export-page">
+        <div class="export-topbar">
+            <div class="export-brand">
                 <img src="../assets/images/logo/la-trinidad.png" alt="La Trinidad logo" />
                 <div>Report Export</div>
             </div>
-            <div class="actions">
-                <a class="btn" href="<?php echo $viewerRole === 'admin' ? 'admin-dashboard.php' : 'barangay-dashboard.php'; ?>">Back</a>
-                <button class="btn primary" id="print-btn" type="button">Print / Save as PDF</button>
+            <div class="export-actions">
+                <a class="export-btn" href="<?php echo $viewerRole === 'admin' ? 'admin-dashboard.php' : 'barangay-dashboard.php'; ?>">Back</a>
+                <a class="export-btn" href="incidents-export-csv.php">Download CSV</a>
+                <button class="export-btn primary" id="print-btn" type="button">Print / Save as PDF</button>
             </div>
         </div>
 

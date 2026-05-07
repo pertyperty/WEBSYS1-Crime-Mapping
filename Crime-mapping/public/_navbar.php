@@ -15,6 +15,7 @@ if (!function_exists('render_navbar')) {
                     ['key' => 'reports', 'label' => 'Reports', 'href' => 'report-export.php'],
                     ['key' => 'map', 'label' => 'Map', 'href' => 'admin-map.php'],
                     ['key' => 'incidents', 'label' => 'Incidents', 'href' => 'admin-incidents.php'],
+                    ['key' => 'crime-types', 'label' => 'Crime Types', 'href' => 'admin-crime-types.php'],
                     ['key' => 'faq', 'label' => 'FAQs', 'href' => 'admin-faq.php'],
                     ['key' => 'users', 'label' => 'User Management', 'href' => 'admin-users.php'],
                 ];
