@@ -84,8 +84,7 @@ $csrfToken = csrf_token();
             </div>
             <div id="user-modal-body" class="report-output"></div>
             <div class="modal-actions">
-                <button type="button" class="btn-secondary" id="toggle-user-status">Toggle status</button>
-                <button type="button" class="btn-secondary" id="disable-user">Disable</button>
+                <button type="button" class="btn-secondary" id="toggle-user-status">Disable</button>
                 <button type="button" class="btn-secondary" id="delete-user">Remove</button>
             </div>
             <p class="muted" id="user-modal-status"></p>
@@ -117,18 +116,50 @@ $csrfToken = csrf_token();
         function openUserModal(user) {
             selectedUser = user;
             document.getElementById('user-modal-title').textContent = user.username;
+            const statusBadge = user.status === 'active' 
+                ? '<span class="status-badge status-active">Active</span>' 
+                : '<span class="status-badge status-disabled">Disabled</span>';
             document.getElementById('user-modal-body').innerHTML = `
-                <div class="report-panel-card">
-                    <div><strong>Email:</strong> ${escapeHtml(user.email || '-')}</div>
-                    <div><strong>Contact:</strong> ${escapeHtml(user.contact || '-')}</div>
-                    <div><strong>Address:</strong> ${escapeHtml(user.address || '-')}</div>
-                    <div><strong>Role:</strong> ${escapeHtml(user.role || '-')}</div>
-                    <div><strong>Barangay:</strong> ${escapeHtml(user.barangay_name || '-')}</div>
-                    <div><strong>Status:</strong> ${escapeHtml(user.status || '-')}</div>
-                    <div><strong>Reports:</strong> ${escapeHtml(user.incident_count ?? 0)}</div>
-                    <div><strong>Created:</strong> ${escapeHtml(user.created_at || '-')}</div>
+                <div class="user-details-card">
+                    <div class="detail-row">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value">${escapeHtml(user.email || '-')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Contact</span>
+                        <span class="detail-value">${escapeHtml(user.contact || '-')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Address</span>
+                        <span class="detail-value">${escapeHtml(user.address || '-')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Role</span>
+                        <span class="detail-value"><span class="pill">${escapeHtml(user.role || '-')}</span></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Barangay</span>
+                        <span class="detail-value">${escapeHtml(user.barangay_name || '-')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Status</span>
+                        <span class="detail-value">${statusBadge}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Reports</span>
+                        <span class="detail-value">${escapeHtml(user.incident_count ?? 0)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Created</span>
+                        <span class="detail-value">${escapeHtml(user.created_at || '-')}</span>
+                    </div>
                 </div>
             `;
+            const toggleBtn = document.getElementById('toggle-user-status');
+            const isActive = user.status === 'active';
+            toggleBtn.textContent = isActive ? 'Disable' : 'Enable';
+            toggleBtn.classList.toggle('btn-danger', isActive);
+            toggleBtn.classList.toggle('btn-success', !isActive);
             document.getElementById('user-modal-status').textContent = '';
             document.getElementById('user-modal').classList.add('is-open');
         }
@@ -205,24 +236,16 @@ $csrfToken = csrf_token();
                     <div><span class="status-badge status-${escapeHtml(String(user.status || '').toLowerCase())}">${escapeHtml(user.status || '-')}</span></div>
                     <div class="user-actions">
                         <button type="button" class="btn-secondary" data-action="view">View</button>
-                        <button type="button" class="btn-secondary" data-action="toggle">Toggle</button>
-                        <button type="button" class="btn-secondary" data-action="disable">Disable</button>
+                        <button type="button" class="btn-secondary status-toggle" data-action="toggle">${escapeHtml(user.status === 'active' ? 'Disable' : 'Enable')}</button>
                         <button type="button" class="btn-secondary" data-action="delete">Remove</button>
                     </div>
                 `;
 
+                const toggleButton = row.querySelector('[data-action="toggle"]');
                 row.querySelector('[data-action="view"]').addEventListener('click', () => openUserModal(user));
-                row.querySelector('[data-action="toggle"]').addEventListener('click', async () => {
+                toggleButton.addEventListener('click', async () => {
                     try {
                         await performUserAction('toggle-status', user, { status: user.status === 'active' ? 'disabled' : 'active' });
-                        await loadUsers();
-                    } catch (error) {
-                        alert(error.message);
-                    }
-                });
-                row.querySelector('[data-action="disable"]').addEventListener('click', async () => {
-                    try {
-                        await performUserAction('toggle-status', user, { status: 'disabled' });
                         await loadUsers();
                     } catch (error) {
                         alert(error.message);
@@ -237,6 +260,11 @@ $csrfToken = csrf_token();
                         alert(error.message);
                     }
                 });
+
+                const isActive = user.status === 'active';
+                toggleButton.textContent = isActive ? 'Disable' : 'Enable';
+                toggleButton.classList.toggle('btn-success', !isActive);
+                toggleButton.classList.toggle('btn-danger', isActive);
                 container.appendChild(row);
             });
         }
@@ -275,16 +303,7 @@ $csrfToken = csrf_token();
                 document.getElementById('user-modal-status').textContent = error.message;
             }
         });
-        document.getElementById('disable-user').addEventListener('click', async () => {
-            if (!selectedUser) return;
-            try {
-                await performUserAction('toggle-status', selectedUser, { status: 'disabled' });
-                closeUserModal();
-                loadUsers();
-            } catch (error) {
-                document.getElementById('user-modal-status').textContent = error.message;
-            }
-        });
+
         document.getElementById('delete-user').addEventListener('click', async () => {
             if (!selectedUser || !confirm(`Disable ${selectedUser.username}?`)) return;
             try {

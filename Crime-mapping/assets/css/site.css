@@ -221,11 +221,19 @@ body::before {
     border: 1px solid var(--border);
 }
 
-.btn-tertiary {
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--border);
-}
+    .btn-success {
+        background: var(--success);
+        color: #ffffff;
+        border-color: rgba(22, 163, 74, 0.3);
+        box-shadow: 0 10px 20px rgba(22, 163, 74, 0.18);
+    }
+
+    .btn-danger {
+        background: var(--danger);
+        color: #ffffff;
+        border-color: rgba(220, 38, 38, 0.3);
+        box-shadow: 0 10px 20px rgba(220, 38, 38, 0.18);
+    }
 
 .btn-primary:hover,
 .btn-secondary:hover,
@@ -1380,6 +1388,121 @@ body::before {
 
 .muted {
     color: var(--muted);
+}
+
+/* Modal overlay and content */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-overlay.is-open {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--surface);
+    border-radius: 20px;
+    box-shadow: 0 32px 64px rgba(15, 23, 42, 0.16);
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 20px;
+    word-break: break-word;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+    background: var(--surface-soft);
+    color: var(--text);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 20px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--surface-soft);
+}
+
+/* User details card styling */
+.user-details-card {
+    padding: 24px;
+    display: grid;
+    gap: 18px;
+}
+
+.detail-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 16px;
+    align-items: center;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 14px;
+}
+
+.detail-value {
+    color: var(--muted);
+    font-size: 14px;
+    word-break: break-word;
+}
+
+.detail-value .pill,
+.detail-value .status-badge {
+    display: inline-block;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeIn {
