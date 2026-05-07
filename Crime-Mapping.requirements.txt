@@ -1,0 +1,234 @@
+--- PAGE 1 ---
+Crime Mapping 
+1. User Access (Entry Point) 
+What happens: 
+• User opens the website 
+• Can: 
+          o Register an account 
+          o Login to existing account 
+System process: 
+• PHP validates input 
+• Stores/retrieves user data from database 
+• Starts session 
+Output: 
+• User is redirected to their dashboard 
+ 
+2. User Dashboard (Main Control Panel) 
+What the user sees: 
+• Welcome message 
+• Quick summary: 
+          o Recent crime reports 
+          o Nearby incidents 
+          o Alerts and notifications 
+• Navigation menu 
+System process: 
+• PHP fetches user and crime data 
+• AJAX loads recent incidents dynamically 
+Output: 
+• Personalized dashboard with live updates 
+ 
+3. Submit Crime Report 
+What the user does: 
+• Select crime type (Theft, Robbery, Assault, Vandalism, etc.) 
+• Enter description
+
+--- PAGE 2 ---
+• Input location (barangay or coordinates) 
+• Set severity level (Low, Medium, High) 
+• Upload image or evidence (optional) 
+• Submit report 
+System process: 
+• AJAX sends data to PHP (no page reload) 
+• PHP validates and stores report 
+• Image/evidence is uploaded and linked 
+Output: 
+• Report is recorded 
+• Confirmation message displayed dynamically 
+ 
+4. View Crime Reports (Live Feed) 
+What the user does: 
+• Opens crime feed 
+System process: 
+• AJAX fetches reports periodically 
+• PHP retrieves latest crime data 
+Output: 
+• Auto-updating list of crime incidents 
+ 
+5. Filter and Search Reports 
+What the user does: 
+• Filters by: 
+          o Crime type 
+          o Severity 
+          o Date 
+          o Location 
+System process: 
+• AJAX sends filter request 
+• PHP processes query
+
+--- PAGE 3 ---
+Output: 
+• Filtered results displayed instantly 
+ 
+6. Report Status Tracking 
+What the user does: 
+• Views submitted reports 
+• Checks status 
+System process: 
+• PHP retrieves status updates: 
+          o Pending 
+          o Under Investigation 
+          o Action Taken 
+          o Resolved 
+Output: 
+• User sees progress of report 
+ 
+7. Real-Time Crime Alerts 
+What happens: 
+• High-severity crime is reported 
+System process: 
+• AJAX polling checks for new alerts 
+• PHP returns high-priority data 
+Output: 
+• Instant alert notification displayed 
+• Users are warned of nearby incidents 
+ 
+8. Crime Mapping Visualization (Core Feature) 
+What the user does: 
+• Opens map view 
+• Views crime locations
+
+--- PAGE 4 ---
+System process: 
+• PHP provides location coordinates 
+• AJAX loads data into map interface 
+• (Optional) Map API used for visualization 
+Output: 
+• Map displays crime markers 
+• Clicking marker shows details 
+ 
+9. Community Validation / Confirmation 
+What the user does: 
+• Confirms or supports a reported incident 
+System process: 
+• AJAX sends confirmation request 
+• PHP updates validation count 
+Output: 
+• Validation count updates dynamically 
+ 
+10. Admin Access (Police / Authority Panel) 
+What happens: 
+• Admin logs in 
+System process: 
+• PHP validates admin credentials 
+• Starts session 
+Output: 
+• Admin dashboard is displayed 
+ 
+11. Admin Dashboard (Monitoring Panel) 
+What the admin sees: 
+• Total crime reports 
+• Active cases
+
+--- PAGE 5 ---
+• Resolved cases 
+• High-risk areas 
+System process: 
+• PHP aggregates crime data 
+• AJAX updates dashboard dynamically 
+Output: 
+• Real-time monitoring interface 
+ 
+12. Review and Verify Reports 
+What the admin does: 
+• Reviews submitted reports 
+• Approves or rejects entries 
+• Adds remarks 
+System process: 
+• PHP updates report status 
+• Logs admin actions 
+Output: 
+• Reports are verified or dismissed 
+ 
+13. Case Management and Status Updates 
+What the admin does: 
+• Updates case progress 
+• Marks cases as resolved 
+System process: 
+• PHP updates database 
+Output: 
+• Users see updated case status 
+ 
+14. Crime Analytics and Reports 
+What the admin does: 
+• Opens analytics page
+
+--- PAGE 6 ---
+System process: 
+• PHP calculates: 
+o Crime frequency by type 
+o Most affected areas (hotspots) 
+o Time-based trends 
+Output: 
+• Data displayed in tables 
+ 
+15. Export Crime Data 
+What the admin does: 
+• Downloads crime reports 
+System process: 
+• PHP generates CSV file 
+Output: 
+• Downloadable dataset 
+ 
+16. Notification System 
+What triggers notifications: 
+• New crime report 
+• Status updates 
+• High-risk alerts 
+System process: 
+• PHP stores notifications 
+• AJAX retrieves updates 
+Output: 
+• Notifications displayed dynamically 
+ 
+17. Admin System Management 
+Admin can: 
+• Manage users 
+• Manage crime categories
+
+--- PAGE 7 ---
+• Monitor reports 
+• Remove false or invalid reports 
+Output: 
+• System remains accurate and controlled 
+ 
+System Workflow 
+1. User registers and logs in  
+2. Submits crime report  
+3. Report is stored in database  
+4. Community validates report  
+5. Admin reviews and verifies  
+6. Admin updates case status  
+7. System triggers alerts (if high severity)  
+8. User views crime map and tracks updates  
+9. Admin analyzes crime trends  
+ 
+System Workflow Diagram (Pipe-line) 
+User → Login → Dashboard 
+    ↓ 
+Submit Crime Report → Stored in DB (AJAX) 
+    ↓ 
+Live Feed ← AJAX Auto-Refresh 
+    ↓ 
+Map View → Crime Locations Displayed 
+    ↓ 
+Community Validation 
+    ↓ 
+Admin Reviews → Approve/Reject 
+    ↓ 
+Case Update → Status Updated 
+    ↓
+
+--- PAGE 8 ---
+Notifications → Displayed 
+    ↓ 
+Analytics & Reports → Generated by PHP
