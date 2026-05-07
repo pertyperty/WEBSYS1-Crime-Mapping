@@ -112,16 +112,6 @@ $csrfToken = csrf_token();
         </main>
 
         <aside class="map-details" id="details-panel">
-            <div class="details-header">
-                <div>
-                    <div class="eyebrow">Incident Details</div>
-                    <h2 id="details-title">Select a pin</h2>
-                </div>
-                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                        <a id="export-pdf-btn" class="btn-secondary" href="#" target="_blank" rel="noopener">Export PDF</a>
-                        <button type="button" id="close-details" class="btn-tertiary">Close</button>
-                    </div>
-            </div>
             <div class="details-body" id="details-body">
                 <p class="muted">Click a marker to view the full report.</p>
             </div>

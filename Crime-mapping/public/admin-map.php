@@ -130,13 +130,6 @@ $csrfToken = csrf_token();
             </div>
 
             <div class="report-panel" id="report-panel">
-                <div class="details-header">
-                    <div>
-                        <div class="eyebrow">Submit Report</div>
-                        <h2>Report a crime</h2>
-                    </div>
-                    <button type="button" id="close-report" class="btn-tertiary">Close</button>
-                </div>
                 <form id="report-form" class="form-grid">
                     <label>
                         <span>Location</span>
