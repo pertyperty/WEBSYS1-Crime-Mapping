@@ -100,13 +100,6 @@ init_secure_session();
         </main>
 
         <aside class="map-details" id="details-panel">
-            <div class="details-header">
-                <div>
-                    <div class="eyebrow">Incident Details</div>
-                    <h2 id="details-title">Select a pin</h2>
-                </div>
-                <button type="button" id="close-details" class="btn-tertiary">Close</button>
-            </div>
             <div class="details-body" id="details-body">
                 <p class="muted">Click a marker to view the full report.</p>
             </div>
