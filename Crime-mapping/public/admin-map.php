@@ -126,7 +126,7 @@ $csrfToken = csrf_token();
                 </div>
             </div>
 
-            <div class="report-panel" id="report-panel" style="display:none;">
+            <div class="report-panel" id="report-panel">
                 <div class="details-header">
                     <div>
                         <div class="eyebrow">Submit Report</div>

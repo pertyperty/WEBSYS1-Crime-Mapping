@@ -50,6 +50,17 @@ if (!$barangayRow) {
 
 $occurredAt = $payload['occurred_date'] . ' ' . $payload['occurred_time'] . ':00';
 
+// Determine source and visibility
+// 'direct' = officer/admin entry (immediately visible)
+// 'reported' = guest report (pending verification)
+$source = isset($payload['source']) && in_array($payload['source'], ['direct', 'reported']) 
+    ? $payload['source'] 
+    : 'reported';
+
+$isOfficerEntry = ($source === 'direct');
+$initialStatus = $isOfficerEntry ? 'under_investigation' : 'pending';
+$isPublic = $isOfficerEntry ? 1 : 0;
+
 $insert = $pdo->prepare(
     'INSERT INTO incidents
     (crime_type_id, title, description, barangay_id, latitude, longitude, occurred_at, severity, status, source, is_public)
@@ -66,9 +77,9 @@ $insert->execute([
     ':longitude' => $payload['longitude'],
     ':occurred_at' => $occurredAt,
     ':severity' => $payload['severity'],
-    ':status' => 'pending',
-    ':source' => 'reported',
-    ':is_public' => 0
+    ':status' => $initialStatus,
+    ':source' => $source,
+    ':is_public' => $isPublic
 ]);
 
 $incidentId = (int) $pdo->lastInsertId();

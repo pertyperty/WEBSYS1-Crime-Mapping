@@ -545,8 +545,19 @@ function closeDetailModal() {
 
 function openReportPanel() {
     reportPanel.classList.add("is-open");
+    reportPanel.style.display = ""; // Ensure visible for authenticated users
     detailsBody.classList.add("is-hidden");
     reportStatus.textContent = "";
+    
+    // Update form title based on user role
+    const reportHeaderTitle = reportPanel.querySelector('h2');
+    if (reportHeaderTitle) {
+        if (window.userRole === 'admin' || window.userRole === 'barangay') {
+            reportHeaderTitle.textContent = 'Add Crime';
+        } else {
+            reportHeaderTitle.textContent = 'Report a crime';
+        }
+    }
 }
 
 function closeReportPanel() {
@@ -874,80 +885,6 @@ if (reportCancel) reportCancel.addEventListener("click", closeReportPanel);
     }
 })();
 
-// Report form submit handling (guest redirect + resume)
-if (reportForm) {
-    reportForm.addEventListener('submit', async (ev) => {
-        ev.preventDefault();
-        reportStatus.textContent = 'Submitting...';
-
-        const draft = {
-            crime_type_id: reportType ? reportType.value : '',
-            title: reportTitle ? reportTitle.value.trim() : '',
-            description: reportDescription ? reportDescription.value.trim() : '',
-            barangay: (reportBarangayHidden && reportBarangayHidden.value) ? reportBarangayHidden.value : (reportBarangay ? reportBarangay.value : ''),
-            occurred_date: reportDate ? reportDate.value : '',
-            occurred_time: reportTime ? reportTime.value : '',
-            severity: reportSeverity ? reportSeverity.value : '',
-            latitude: reportLatLng ? reportLatLng.lat : null,
-            longitude: reportLatLng ? reportLatLng.lng : null
-        };
-
-        // If user not logged in, save draft and redirect to login/register with resume flag
-        if (!window.currentUser || !window.currentUser.id) {
-            try {
-                sessionStorage.setItem('pending_report', JSON.stringify(draft));
-                const next = 'map.php?resume_report=1';
-                // prefer login; user can switch to register from there
-                window.location.href = `login.php?next=${encodeURIComponent(next)}`;
-                return;
-            } catch (e) {
-                console.error('Failed to save draft', e);
-                reportStatus.textContent = 'Unable to save draft. Please try again.';
-                return;
-            }
-        }
-
-        // Submit report for authenticated users
-        try {
-            const payload = {
-                crime_type_id: draft.crime_type_id,
-                title: draft.title,
-                description: draft.description,
-                barangay: draft.barangay,
-                occurred_date: draft.occurred_date,
-                occurred_time: draft.occurred_time,
-                severity: draft.severity,
-                latitude: draft.latitude,
-                longitude: draft.longitude
-            };
-
-            const resp = await fetch(`${apiBase}/report.php`, {
-                method: 'POST',
-                headers: {
-                    ...csrfHeaders({ 'Content-Type': 'application/json' })
-                },
-                body: JSON.stringify(payload)
-            });
-            const result = await resp.json();
-            if (!result.ok) {
-                reportStatus.textContent = result.error || 'Failed to submit report.';
-                return;
-            }
-
-            // clear any pending draft
-            try { sessionStorage.removeItem('pending_report'); } catch(e){}
-
-            reportStatus.textContent = 'Report submitted.';
-            closeReportPanel();
-            await loadIncidents();
-            setTimeout(() => { if (reportStatus) reportStatus.textContent = ''; }, 2500);
-        } catch (e) {
-            console.error('Report submission failed', e);
-            reportStatus.textContent = 'Submission failed. Try again.';
-        }
-    });
-}
-
 map.on("click", (event) => {
     if (!reportPanel || !reportPanel.classList.contains("is-open")) {
         return;
@@ -1071,11 +1008,11 @@ if (reportForm) {
             return;
         }
 
-        const payload = {
+        const draft = {
             crime_type_id: reportType.value,
             title: reportTitle.value.trim(),
             description: reportDescription.value.trim(),
-            barangay: reportBarangay.value,
+            barangay: reportBarangayHidden.value || reportBarangay.value,
             occurred_date: reportDate.value,
             occurred_time: reportTime.value,
             severity: reportSeverity.value,
@@ -1083,7 +1020,35 @@ if (reportForm) {
             longitude: reportLatLng.lng
         };
 
-        if (reportStatus) reportStatus.textContent = "Submitting report...";
+        // Guest redirect + draft save
+        if (!window.currentUser || !window.currentUser.id) {
+            try {
+                sessionStorage.setItem('pending_report', JSON.stringify(draft));
+                const next = 'map.php?resume_report=1';
+                window.location.href = `login.php?next=${encodeURIComponent(next)}`;
+                return;
+            } catch (e) {
+                console.error('Failed to save draft', e);
+                if (reportStatus) reportStatus.textContent = 'Unable to save draft. Please try again.';
+                return;
+            }
+        }
+
+        // Authenticated user submit
+        const payload = {
+            crime_type_id: draft.crime_type_id,
+            title: draft.title,
+            description: draft.description,
+            barangay: draft.barangay,
+            occurred_date: draft.occurred_date,
+            occurred_time: draft.occurred_time,
+            severity: draft.severity,
+            latitude: draft.latitude,
+            longitude: draft.longitude,
+            source: window.userRole ? 'direct' : 'reported'
+        };
+
+        if (reportStatus) reportStatus.textContent = window.userRole ? "Adding crime..." : "Submitting report...";
         try {
             const response = await fetch(`${apiBase}/report.php`, {
                 method: "POST",
@@ -1100,11 +1065,24 @@ if (reportForm) {
                 return;
             }
 
-            if (reportStatus) reportStatus.textContent = "Report submitted. Awaiting verification.";
+            if (reportStatus) {
+                if (window.userRole) {
+                    reportStatus.textContent = "Crime added successfully.";
+                } else {
+                    reportStatus.textContent = "Report submitted. Awaiting verification.";
+                }
+            }
             reportForm.reset();
             reportLatLng = null;
             if (reportCoords) reportCoords.value = "";
+            
+            // Clear pending draft if any
+            try { sessionStorage.removeItem('pending_report'); } catch(e){}
+            
+            // Close the form and reload incidents
+            closeReportPanel();
             loadIncidents();
+            setTimeout(() => { if (reportStatus) reportStatus.textContent = ''; }, 2500);
         } catch (error) {
             console.error("Report submission failed", error);
             if (reportStatus) reportStatus.textContent = "Submission failed. Please try again.";
