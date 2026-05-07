@@ -100,33 +100,34 @@ init_secure_session();
                 </div>
             </section>
 
-            <section class="panel carousel-panel">
-                <div class="panel-header">
-                    <div>
-                        <h2>Recent Crime Images</h2>
-                        <p class="panel-note">Recent incident photos are shown below with captions and a graceful fallback when no image is attached.</p>
-                    </div>
-                </div>
-                <div class="carousel-shell">
-                    <div class="carousel-track" id="crime-carousel-track" aria-live="polite"></div>
-                </div>
-                <div class="carousel-status" id="crime-carousel-status">Loading recent images...</div>
-            </section>
-
             <section class="dashboard-grid">
-                <div class="panel">
-                    <div class="panel-header">
-                        <h2>Recent Reports</h2>
-                        <button class="btn-tertiary" id="refresh-feed">Refresh</button>
-                    </div>
-                    <div class="feed" id="recent-feed"></div>
-                </div>
                 <div class="panel">
                     <div class="panel-header">
                         <h2>Alerts & Notifications</h2>
                         <span class="pill">Auto-updating</span>
                     </div>
                     <div class="alerts" id="alerts"></div>
+                </div>
+
+                <div class="panel carousel-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>Recent Crime Images</h2>
+                            <p class="panel-note">Recent incident photos are shown below with captions and a graceful fallback when no image is attached.</p>
+                        </div>
+                    </div>
+                    <div class="carousel-shell">
+                        <div class="carousel-track" id="crime-carousel-track" aria-live="polite"></div>
+                    </div>
+                    <div class="carousel-status" id="crime-carousel-status">Loading recent images...</div>
+                </div>
+
+                <div class="panel span-full">
+                    <div class="panel-header">
+                        <h2>Recent Reports</h2>
+                        <button class="btn-tertiary" id="refresh-feed">Refresh</button>
+                    </div>
+                    <div class="feed" id="recent-feed"></div>
                 </div>
             </section>
         </main>

@@ -103,11 +103,20 @@ function normalizeImageUrl(filePath) {
 }
 
 function getPlaceholderSlides() {
-    return [{
-        image: placeholderImage,
-        title: "No crime images yet",
-        subtitle: "Recent reports will appear here once an image is attached."
-    }];
+    return [
+        {
+            image: "../assets/images/crime-images/Arrest.jpg",
+            title: "Arrest evidence",
+            subtitle: "Recent on-site arrest • Barangay patrol",
+            description: "A sample crime image showing evidence and documentation for a recent arrest."
+        },
+        {
+            image: "../assets/images/crime-images/murder.jpg",
+            title: "Crime scene overview",
+            subtitle: "Active investigation • Night shift",
+            description: "A real scene photo placeholder from the crime image assets with a short summary."
+        }
+    ];
 }
 
 function buildSevenDaySummary(incidents) {
@@ -208,6 +217,7 @@ function renderImageCarousel(slides, isLoading = false) {
             <div class="carousel-caption">
                 <h3>${escapeHtml(slide.title)}</h3>
                 <p>${escapeHtml(slide.subtitle)}</p>
+                ${slide.description ? `<p class="carousel-description">${escapeHtml(slide.description)}</p>` : ""}
             </div>
         `;
         carouselTrack.appendChild(slideElement);
