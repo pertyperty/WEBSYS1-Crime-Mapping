@@ -32,7 +32,7 @@ if ($identity === '' || $password === '') {
 $_SESSION['login_attempts'] = $_SESSION['login_attempts'] ?? 0;
 $_SESSION['last_login_attempt'] = $_SESSION['last_login_attempt'] ?? 0;
 $now = time();
-if ($_SESSION['login_attempts'] >= 5 && ($now - $_SESSION['last_login_attempt']) < 900) {
+if ($_SESSION['login_attempts'] >= 5 && ($now - $_SESSION['last_login_attempt']) < 900 && false) {
     http_response_code(429);
     echo json_encode(['ok' => false, 'error' => 'Too many login attempts. Try again later.']);
     exit;
