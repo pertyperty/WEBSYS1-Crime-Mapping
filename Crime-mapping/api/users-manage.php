@@ -13,25 +13,26 @@ if ($role !== 'admin') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Get all users
-    $stmt = $pdo->prepare('
-        SELECT 
-            u.user_id, 
-            u.username, 
-            u.email, 
-            u.contact, 
-            u.address,
-            u.role, 
-            b.barangay_name,
-            u.status,
-            u.created_at,
-            COUNT(i.incident_id) as incident_count
+    // Get all users - with defensive address column check
+    $columns = 'u.user_id, u.username, u.email, u.contact, u.role, b.barangay_name, u.status, u.created_at, COUNT(i.incident_id) as incident_count';
+    
+    // Check if address column exists in users table
+    $colCheckStmt = $pdo->prepare("SELECT COUNT(*) AS cnt FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'address'");
+    $colCheckStmt->execute();
+    $hasAddressColumn = (int) $colCheckStmt->fetchColumn() > 0;
+    
+    if ($hasAddressColumn) {
+        $columns = 'u.user_id, u.username, u.email, u.contact, u.address, u.role, b.barangay_name, u.status, u.created_at, COUNT(i.incident_id) as incident_count';
+    }
+    
+    $stmt = $pdo->prepare("
+        SELECT {$columns}
         FROM users u
         LEFT JOIN barangays b ON u.barangay_id = b.barangay_id
         LEFT JOIN incidents i ON u.user_id = i.reported_by
         GROUP BY u.user_id
         ORDER BY u.created_at DESC
-    ');
+    ");
     $stmt->execute();
     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     

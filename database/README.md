@@ -6,8 +6,8 @@ Centralized SQL database files for Crime Mapping system.
 
 ### `schema.sql`
 - Complete database schema with all tables and indexes
-- Includes static seed data: barangays (16) and crime type categories (10)
-- ~190 lines (optimized, single-line table definitions)
+- Includes static seed data: barangays (16) and crime type categories (47), default FAQs (4)
+- ~220 lines (includes faqs table and user address column)
 - **Import first**: `mysql crime_mapping < schema.sql`
 
 ### `demo.sql`
@@ -35,6 +35,12 @@ php Crime-mapping/tools/seed.php
 This loader:
 - Reads the SQL files and executes them in order
 - Supports `--regenerate-users` flag to create fresh password hashes
+
+### Migration Files
+**Note:** The migration file `sql/migration-faq-and-address.sql` is no longer needed. All schema updates are now included in the main `schema.sql` file, which includes:
+- `faqs` table for FAQ management
+- `address` column in users table
+- All indexes and constraints
 
 ## Demo Credentials
 
