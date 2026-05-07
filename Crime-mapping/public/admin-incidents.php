@@ -8,6 +8,7 @@ requireRole(['admin']);
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Incidents | La Trinidad Crime Mapping</title>
+    <link rel="icon" type="image/png" href="../assets/images/logo/la-trinidad.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -167,7 +168,10 @@ requireRole(['admin']);
                             </div>
                             <div class="compact-card-footer">
                                 <span class="incident-mini-note">ID: ${id} ${imageCount ? `• ${imageCount} image${imageCount > 1 ? 's' : ''}` : ''}</span>
-                                <a href="admin-map.php?incident=${id}" class="link-small" onclick="event.stopPropagation()">View on Map →</a>
+                                <span style="display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end;">
+                                    <a href="admin-map.php?incident=${id}" class="link-small" onclick="event.stopPropagation()">View on Map →</a>
+                                    <a href="admin-incident-export.php?incident_id=${id}" class="link-small" target="_blank" rel="noopener" onclick="event.stopPropagation()">Export PDF →</a>
+                                </span>
                             </div>
                         </div>
                     </article>

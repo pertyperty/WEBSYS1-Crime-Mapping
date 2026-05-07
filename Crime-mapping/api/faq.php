@@ -6,13 +6,17 @@ init_secure_session();
 
 // GET: Fetch FAQs for public display or admin
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $includeInactive = $_GET['include_inactive'] ?? false;
+    $includeInactive = filter_var($_GET['include_inactive'] ?? false, FILTER_VALIDATE_BOOLEAN);
     $role = $_SESSION['role'] ?? 'public';
     
     // Public can only see active FAQs
-    if ($role !== 'admin' && !($includeInactive)) {
+    if ($role !== 'admin' && !$includeInactive) {
         $stmt = $pdo->prepare('
-            SELECT faq_id, question, answer, category, sort_order
+            SELECT faq_id,
+                COALESCE(question, "") AS question,
+                COALESCE(answer, "") AS answer,
+                COALESCE(category, "") AS category,
+                sort_order
             FROM faqs
             WHERE is_active = 1
             ORDER BY category ASC, sort_order ASC
@@ -20,7 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     } else {
         // Admin can see all FAQs
         $stmt = $pdo->prepare('
-            SELECT faq_id, question, answer, category, sort_order, is_active
+            SELECT faq_id,
+                COALESCE(question, "") AS question,
+                COALESCE(answer, "") AS answer,
+                COALESCE(category, "") AS category,
+                sort_order,
+                is_active
             FROM faqs
             ORDER BY category ASC, sort_order ASC
         ');

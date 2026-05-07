@@ -188,6 +188,7 @@ const detailModal = document.getElementById("detail-modal");
 const modalTitle = document.getElementById("modal-title");
 const detailInfo = document.getElementById("detail-info");
 const imageCarousel = document.getElementById("image-carousel");
+const exportPdfButton = document.getElementById("export-pdf-btn");
 const detailImageInput = document.getElementById("detail-image-input");
 const uploadStatus = document.getElementById("upload-status");
 const closeModal = document.getElementById("close-modal");
@@ -230,6 +231,19 @@ function renderIncidentDetailsHtml(incident) {
     `;
 }
 
+function updateExportLink(incidentId) {
+    if (!exportPdfButton) return;
+
+    if (!incidentId) {
+        exportPdfButton.setAttribute("href", "#");
+        exportPdfButton.setAttribute("aria-disabled", "true");
+        return;
+    }
+
+    exportPdfButton.setAttribute("href", `admin-incident-export.php?incident_id=${encodeURIComponent(incidentId)}`);
+    exportPdfButton.removeAttribute("aria-disabled");
+}
+
 function setValidationSelection(userReaction) {
     if (!credibleBtn || !notCredibleBtn) return;
     credibleBtn.classList.remove("is-active");
@@ -258,6 +272,7 @@ function openDetailSidebar(incident) {
     if (filtersPanel) filtersPanel.classList.remove("is-open");
 
     currentIncidentId = incident.id;
+    updateExportLink(currentIncidentId);
 
     if (detailsTitle) detailsTitle.textContent = incident.title || "Incident";
     if (detailsBody) detailsBody.innerHTML = '<p class="muted">Loading details...</p>';
@@ -527,6 +542,7 @@ function openDetailModal(incident) {
     // to prevent duplicate rendering. Ensure the side panel is closed.
     try { detailsPanel.classList.remove('is-open'); } catch (e) {}
     currentIncidentId = incident.id;
+    updateExportLink(currentIncidentId);
     detailModal.classList.add("is-open");
     uploadStatus.textContent = "";
     loadValidationCounts();
@@ -540,6 +556,7 @@ function openDetailModal(incident) {
 function closeDetailModal() {
     detailModal.classList.remove("is-open");
     currentIncidentId = null;
+    updateExportLink(null);
     uploadStatus.textContent = "";
 }
 

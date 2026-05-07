@@ -9,6 +9,7 @@ $csrfToken = csrf_token();
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Admin Map | La Trinidad Crime Mapping</title>
+    <link rel="icon" type="image/png" href="../assets/images/logo/la-trinidad.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -186,7 +187,10 @@ $csrfToken = csrf_token();
                         <div class="eyebrow">Incident Details</div>
                         <h2 id="modal-title">Loading...</h2>
                     </div>
-                    <button type="button" id="close-modal" class="btn-tertiary">Close</button>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <a id="export-pdf-btn" class="btn-secondary" href="#" target="_blank" rel="noopener">Export PDF</a>
+                        <button type="button" id="close-modal" class="btn-tertiary">Close</button>
+                    </div>
                 </div>
 
                 <div class="detail-modal-body">
