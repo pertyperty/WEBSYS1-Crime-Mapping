@@ -40,11 +40,6 @@ $csrfToken = csrf_token();
             </div>
 
             <div class="filter-group">
-                <label class="filter-label">Search</label>
-                <input id="search-input" type="text" placeholder="Search name, keyword, or description" />
-            </div>
-
-            <div class="filter-group">
                 <label class="filter-label">Type of Crime</label>
                 <div class="checkbox-list" id="type-filters"></div>
             </div>
@@ -106,6 +101,13 @@ $csrfToken = csrf_token();
                 <svg width="18" height="14" viewBox="0 0 18 14" fill="none" xmlns="http://www.w3.org/2000/svg"><rect y="1" width="18" height="2" rx="1" fill="currentColor"/><rect y="6" width="18" height="2" rx="1" fill="currentColor"/><rect y="11" width="18" height="2" rx="1" fill="currentColor"/></svg>
             </button>
 
+            <label class="map-search-bar" aria-label="Search incidents">
+                <span class="map-search-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                </span>
+                <input id="search-input" type="text" placeholder="Search incidents, names, or places" autocomplete="off" />
+            </label>
+
             <div id="map" class="map-canvas map-full"></div>
         </main>
 
@@ -151,8 +153,9 @@ $csrfToken = csrf_token();
                 </div>
                 <form id="report-form" class="form-grid">
                     <label>
-                        <span>Coordinates</span>
-                        <input id="report-coords" type="text" placeholder="Click on the map to set" readonly />
+                        <span>Location</span>
+                        <input id="report-coords" type="text" placeholder="Click the map or type a location" autocomplete="off" />
+                        <small class="muted">Type a place name, address, or coordinates. The marker updates automatically.</small>
                     </label>
                     <label>
                         <span>Crime type</span>

@@ -295,6 +295,7 @@ let reportTypes = [];
 let currentIncidentId = null;
 let filterTimer = null;
 let tempMarker = null;
+let locationResolveTimer = null;
 
 async function reverseGeocode(lat, lng) {
     try {
@@ -416,6 +417,49 @@ function formatStatus(status) {
     return status.replace(/_/g, " ");
 }
 
+function formatLatLng(latlng) {
+    return `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
+}
+
+function parseLocationCoordinates(value) {
+    const cleaned = String(value || "").trim();
+    const match = cleaned.match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+    if (!match) {
+        return null;
+    }
+
+    const lat = Number(match[1]);
+    const lng = Number(match[2]);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+        return null;
+    }
+
+    return L.latLng(lat, lng);
+}
+
+async function forwardGeocode(query) {
+    try {
+        const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`);
+        if (!resp.ok) return null;
+
+        const results = await resp.json();
+        if (!Array.isArray(results) || !results.length) return null;
+
+        const first = results[0];
+        const lat = Number(first.lat);
+        const lng = Number(first.lon);
+        if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
+
+        return {
+            latlng: L.latLng(lat, lng),
+            label: first.display_name || query
+        };
+    } catch (error) {
+        console.error('Forward geocode failed', error);
+        return null;
+    }
+}
+
 function isWithinDateRange(dateString) {
     const start = dateStart.value ? new Date(dateStart.value) : null;
     const end = dateEnd.value ? new Date(dateEnd.value) : null;
@@ -453,12 +497,27 @@ function renderMarkers() {
         console.log("Rendering markers...");
         markersLayer.clearLayers();
 
-        incidents
+        const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : "";
+
+        const visibleIncidents = incidents
             .filter((incident) => (activeTypes.size ? activeTypes.has(incident.type) : true))
             .filter((incident) => (barangayFilter && barangayFilter.value ? incident.barangay === barangayFilter.value : true))
             .filter((incident) => (statusFilter && statusFilter.value ? incident.status === statusFilter.value : true))
+            .filter((incident) => {
+                if (!searchTerm) {
+                    return true;
+                }
+
+                const haystack = [incident.title, incident.description, incident.barangay, incident.type_name, incident.status]
+                    .filter(Boolean)
+                    .join(" ")
+                    .toLowerCase();
+                return haystack.includes(searchTerm);
+            })
             .filter((incident) => isWithinDateRange(incident.date))
-            .forEach((incident) => {
+            ;
+
+        visibleIncidents.forEach((incident) => {
                 const marker = createMarker(incident).addTo(markersLayer);
                 const safeTitle = escapeHtml(incident.title);
                 const safeBarangay = escapeHtml(incident.barangay);
@@ -470,7 +529,19 @@ function renderMarkers() {
                 );
                 marker.on("click", () => openDetailSidebar(incident));
             });
-        console.log(`Rendered ${incidents.length} markers`);
+
+        if (searchTerm && visibleIncidents.length > 0 && map) {
+            try {
+                const bounds = L.latLngBounds(visibleIncidents.map((incident) => [incident.lat, incident.lng]));
+                if (bounds.isValid()) {
+                    map.fitBounds(bounds.pad(0.2), { maxZoom: 15, animate: true });
+                }
+            } catch (error) {
+                console.error('Failed to fit bounds for search results', error);
+            }
+        }
+
+        console.log(`Rendered ${visibleIncidents.length} markers`);
     } catch (error) {
         console.error("Error rendering markers:", error);
     }
@@ -575,6 +646,10 @@ function openReportPanel() {
             reportHeaderTitle.textContent = 'Report a crime';
         }
     }
+
+    if (reportStatus) {
+        reportStatus.textContent = 'Click the map or type a location to set the report point.';
+    }
 }
 
 function closeReportPanel() {
@@ -582,9 +657,90 @@ function closeReportPanel() {
     detailsBody.classList.remove("is-hidden");
 }
 
-function setReportCoords(latlng) {
+function setReportLocation(latlng, label = null) {
     reportLatLng = latlng;
-    reportCoords.value = `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
+    if (reportCoords) {
+        reportCoords.value = label || formatLatLng(latlng);
+    }
+}
+
+function syncTemporaryMarker(latlng, label = null, shouldPan = true) {
+    try {
+        if (tempMarker) {
+            markersLayer.removeLayer(tempMarker);
+        }
+    } catch (error) {
+        console.error('Failed to clear temporary marker', error);
+    }
+
+    tempMarker = L.marker([latlng.lat, latlng.lng], { draggable: true }).addTo(markersLayer);
+    setReportLocation(latlng, label);
+
+    tempMarker.on('dragend', (ev) => {
+        const draggedPoint = ev.target.getLatLng();
+        setReportLocation(draggedPoint);
+        reverseGeocode(draggedPoint.lat, draggedPoint.lng).then((addr) => {
+            if (addr && reportCoords) {
+                reportCoords.value = addr;
+            }
+            if (addr && barangays && barangays.length) {
+                const lowerAddr = addr.toLowerCase();
+                const match = barangays.find((b) => lowerAddr.includes(String(b).toLowerCase()));
+                if (match) {
+                    if (reportBarangayHidden) reportBarangayHidden.value = match;
+                    if (reportBarangay && reportBarangay.tagName && reportBarangay.tagName.toLowerCase() === 'select') reportBarangay.value = match;
+                }
+            }
+        }).catch(() => {});
+    });
+
+    if (shouldPan && map) {
+        try {
+            map.setView([latlng.lat, latlng.lng], Math.max(map.getZoom(), 16));
+        } catch (error) {
+            console.error('Failed to pan map to location', error);
+        }
+    }
+}
+
+async function resolveTypedLocation(value) {
+    const rawValue = String(value || '').trim();
+    if (!rawValue) {
+        return null;
+    }
+
+    const parsed = parseLocationCoordinates(rawValue);
+    if (parsed) {
+        return { latlng: parsed, label: formatLatLng(parsed) };
+    }
+
+    return forwardGeocode(rawValue);
+}
+
+async function updateReportLocationFromInput() {
+    if (!reportCoords) {
+        return;
+    }
+
+    const resolved = await resolveTypedLocation(reportCoords.value);
+    if (!resolved) {
+        return;
+    }
+
+    syncTemporaryMarker(resolved.latlng, resolved.label, true);
+    reverseGeocode(resolved.latlng.lat, resolved.latlng.lng).then((addr) => {
+        if (addr && reportCoords) {
+            reportCoords.value = addr;
+        }
+        if (addr && barangays && barangays.length) {
+            const lowerAddr = addr.toLowerCase();
+            const match = barangays.find((b) => lowerAddr.includes(String(b).toLowerCase()));
+            if (match) {
+                if (reportBarangayHidden) reportBarangayHidden.value = match;
+                if (reportBarangay && reportBarangay.tagName && reportBarangay.tagName.toLowerCase() === 'select') reportBarangay.value = match;
+            }
+        }
+    }).catch(() => {});
 }
 
 function resetFilters() {
@@ -808,6 +964,12 @@ escalateBtnEl?.addEventListener('click', () => {
 });
 
 if (searchInput) searchInput.addEventListener("input", scheduleLoadIncidents);
+if (searchInput) searchInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        loadIncidents();
+    }
+});
 if (barangayFilter) barangayFilter.addEventListener("change", loadIncidents);
 if (statusFilter) statusFilter.addEventListener("change", loadIncidents);
 if (dateStart) dateStart.addEventListener("change", loadIncidents);
@@ -869,6 +1031,29 @@ if (reportButton) reportButton.addEventListener("click", openReportPanel);
 if (reportClose) reportClose.addEventListener("click", closeReportPanel);
 if (reportCancel) reportCancel.addEventListener("click", closeReportPanel);
 
+if (reportCoords) {
+    reportCoords.addEventListener('input', () => {
+        if (locationResolveTimer) {
+            clearTimeout(locationResolveTimer);
+        }
+
+        locationResolveTimer = setTimeout(() => {
+            updateReportLocationFromInput();
+        }, 650);
+    });
+
+    reportCoords.addEventListener('blur', () => {
+        updateReportLocationFromInput();
+    });
+
+    reportCoords.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            updateReportLocationFromInput();
+        }
+    });
+}
+
 // Restore pending report after login/register if present
 (function tryRestorePendingReport() {
     const params = new URLSearchParams(window.location.search);
@@ -879,10 +1064,7 @@ if (reportCancel) reportCancel.addEventListener("click", closeReportPanel);
             const draft = JSON.parse(raw);
             if (draft.latitude && draft.longitude) {
                 const latlng = L.latLng(draft.latitude, draft.longitude);
-                // place marker
-                try { if (tempMarker) markersLayer.removeLayer(tempMarker); } catch(e){}
-                tempMarker = L.marker([latlng.lat, latlng.lng], { draggable: true }).addTo(markersLayer);
-                setReportCoords(latlng);
+                syncTemporaryMarker(latlng);
                 // populate fields
                 if (draft.crime_type_id) reportType.value = draft.crime_type_id;
                 if (draft.title) reportTitle.value = draft.title;
@@ -901,13 +1083,6 @@ if (reportCancel) reportCancel.addEventListener("click", closeReportPanel);
         }
     }
 })();
-
-map.on("click", (event) => {
-    if (!reportPanel || !reportPanel.classList.contains("is-open")) {
-        return;
-    }
-    setReportCoords(event.latlng);
-});
 
 // Open details panel at clicked location and show nearby pins or message
 map.on('click', (event) => {
@@ -940,17 +1115,13 @@ map.on('click', (event) => {
 
             // Allow anyone (including guests) to place a temporary marker and open report form.
             try {
-                if (typeof tempMarker !== 'undefined' && tempMarker) {
-                    try { markersLayer.removeLayer(tempMarker); } catch(e){}
-                }
-                tempMarker = L.marker([latlng.lat, latlng.lng], { draggable: true }).addTo(markersLayer);
-                setReportCoords(latlng);
+                syncTemporaryMarker(latlng);
                 openReportPanel();
 
                 // reverse geocode and try to infer barangay from address
                 try {
                     reverseGeocode(latlng.lat, latlng.lng).then(addr => {
-                        if (reportCoords) reportCoords.value = addr || `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
+                        if (reportCoords) reportCoords.value = addr || formatLatLng(latlng);
                         if (addr && barangays && barangays.length) {
                             const lowerAddr = addr.toLowerCase();
                             const match = barangays.find(b => lowerAddr.includes(String(b).toLowerCase()));
@@ -961,22 +1132,6 @@ map.on('click', (event) => {
                         }
                     }).catch(e=>{});
                 } catch(e){}
-
-                // allow dragging to update coords
-                tempMarker.on('dragend', (ev) => {
-                    const p = ev.target.getLatLng();
-                    setReportCoords(p);
-                    reverseGeocode(p.lat, p.lng).then(addr => {
-                        if (addr && barangays && barangays.length) {
-                            const lowerAddr = addr.toLowerCase();
-                            const match = barangays.find(b => lowerAddr.includes(String(b).toLowerCase()));
-                            if (match) {
-                                if (reportBarangayHidden) reportBarangayHidden.value = match;
-                                if (reportBarangay && reportBarangay.tagName && reportBarangay.tagName.toLowerCase() === 'select') reportBarangay.value = match;
-                            }
-                        }
-                    }).catch(()=>{});
-                });
             } catch (e) {
                 console.error('Failed to place temporary marker', e);
             }
@@ -1020,8 +1175,20 @@ map.on('click', (event) => {
 if (reportForm) {
     reportForm.addEventListener("submit", async (event) => {
         event.preventDefault();
+        if (!reportLatLng && reportCoords && reportCoords.value.trim()) {
+            const resolved = await resolveTypedLocation(reportCoords.value);
+            if (resolved) {
+                syncTemporaryMarker(resolved.latlng, resolved.label, false);
+                await reverseGeocode(resolved.latlng.lat, resolved.latlng.lng).then((addr) => {
+                    if (addr && reportCoords) {
+                        reportCoords.value = addr;
+                    }
+                }).catch(() => {});
+            }
+        }
+
         if (!reportLatLng) {
-            if (reportStatus) reportStatus.textContent = "Please click on the map to set the report location.";
+            if (reportStatus) reportStatus.textContent = "Please set a location before submitting.";
             return;
         }
 

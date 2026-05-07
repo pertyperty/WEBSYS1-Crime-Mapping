@@ -767,10 +767,5 @@ $autoPrint = (($_GET['autoprint'] ?? '') === '1');
 
         loadReport();
     </script>
-        const autoPrint = <?php echo json_encode($autoPrint); ?>;
-        if (autoPrint) {
-            window.addEventListener('load', () => setTimeout(() => window.print(), 450));
-        }
-
 </body>
 </html>

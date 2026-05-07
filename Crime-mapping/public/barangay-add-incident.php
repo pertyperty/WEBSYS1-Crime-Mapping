@@ -52,8 +52,9 @@ $csrfToken = csrf_token();
                         <textarea id="incident-description" rows="4" placeholder="What happened? Provide details..." required></textarea>
                     </label>
                     <label>
-                        <span>Location (Latitude, Longitude) *</span>
-                        <input type="text" id="incident-location" placeholder="e.g., 16.455, 120.59" required />
+                        <span>Location *</span>
+                        <input type="text" id="incident-location" placeholder="Enter a place name, address, or coordinates" required />
+                        <small class="muted">Type a location name or coordinate pair. The system will geocode it automatically.</small>
                     </label>
                     <label>
                         <span>Date *</span>
@@ -91,6 +92,39 @@ $csrfToken = csrf_token();
         const csrfToken = <?php echo json_encode($csrfToken); ?>;
         const apiBase = '../api';
 
+        function parseLocationCoordinates(value) {
+            const cleaned = String(value || '').trim();
+            const match = cleaned.match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+            if (!match) {
+                return null;
+            }
+
+            const lat = Number(match[1]);
+            const lng = Number(match[2]);
+            if (Number.isNaN(lat) || Number.isNaN(lng)) {
+                return null;
+            }
+
+            return { lat, lng };
+        }
+
+        async function forwardGeocode(query) {
+            try {
+                const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`);
+                if (!resp.ok) return null;
+                const results = await resp.json();
+                if (!Array.isArray(results) || !results.length) return null;
+                const first = results[0];
+                const lat = Number(first.lat);
+                const lng = Number(first.lon);
+                if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
+                return { lat, lng };
+            } catch (error) {
+                console.error('Location geocode failed', error);
+                return null;
+            }
+        }
+
         // Set default date to today
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('incident-date').value = today;
@@ -123,10 +157,15 @@ $csrfToken = csrf_token();
 
             try {
                 const locationStr = document.getElementById('incident-location').value.trim();
-                const [lat, lng] = locationStr.split(',').map(s => parseFloat(s.trim()));
-                
-                if (isNaN(lat) || isNaN(lng)) {
-                    formStatus.textContent = 'Invalid location coordinates.';
+                let location = parseLocationCoordinates(locationStr);
+
+                if (!location) {
+                    formStatus.textContent = 'Resolving location...';
+                    location = await forwardGeocode(locationStr);
+                }
+
+                if (!location) {
+                    formStatus.textContent = 'Unable to resolve the location. Please enter a clearer place name or coordinates.';
                     return;
                 }
 
@@ -136,8 +175,8 @@ $csrfToken = csrf_token();
                     crime_type_id: parseInt(document.getElementById('crime-type').value),
                     title: document.getElementById('incident-title').value.trim(),
                     description: document.getElementById('incident-description').value.trim(),
-                    latitude: lat,
-                    longitude: lng,
+                    latitude: location.lat,
+                    longitude: location.lng,
                     occurred_date: document.getElementById('incident-date').value,
                     occurred_time: document.getElementById('incident-time').value,
                     severity: document.getElementById('incident-severity').value,

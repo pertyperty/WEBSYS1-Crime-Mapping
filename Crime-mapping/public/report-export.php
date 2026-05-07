@@ -698,6 +698,19 @@ function esc($value): string
             return humanize(value || 'N/A');
         }
 
+        function shortDescription(value, maxLength = 160) {
+            const text = String(value ?? '').trim();
+            if (!text) {
+                return 'No short description was provided.';
+            }
+
+            if (text.length <= maxLength) {
+                return text;
+            }
+
+            return `${text.slice(0, maxLength).trimEnd()}...`;
+        }
+
         function placeholderImage() {
             const svg = `
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="title desc">
@@ -837,7 +850,7 @@ function esc($value): string
                             <article class="business-case">
                                 <p class="case-kicker">Incident case brief</p>
                                 <h2 class="case-title">${escapeHtml(incident.title || 'Untitled incident')}</h2>
-                                <p class="case-summary">${escapeHtml(incident.description || 'No incident description was provided.')}</p>
+                                        <p class="case-summary">${escapeHtml(shortDescription(incident.description))}</p>
 
                                 <div class="case-layout">
                                     <div class="case-section">
@@ -845,11 +858,12 @@ function esc($value): string
                                         <div class="case-details">
                                             ${renderDetailRows([
                                                 { label: 'Case number', value: `INC-${String(incident.incident_id).padStart(5, '0')}` },
+                                                        { label: 'Short description', value: shortDescription(incident.description) },
                                                 { label: 'Reported date', value: incident.occurred_at || 'N/A' },
                                                 { label: 'Barangay', value: incident.barangay_name || incident.barangay || 'N/A' },
                                                 { label: 'Crime type', value: incident.type_name || 'N/A' },
                                                 { label: 'Severity', value: formatLabel(incident.severity) },
-                                                { label: 'Status', value: formatLabel(incident.status || 'open') },
+                                                        { label: 'Investigation status', value: formatLabel(incident.status || 'open') },
                                                 { label: 'Source', value: formatLabel(incident.source || 'reported') },
                                                 { label: 'Image count', value: String(evidenceCount) },
                                                 { label: 'Log entries', value: String(logCount) }
@@ -857,7 +871,7 @@ function esc($value): string
                                         </div>
                                         <div class="tag-row">
                                             <span class="tag">Incident #${escapeHtml(incident.incident_id)}</span>
-                                            <span class="tag">${escapeHtml(formatLabel(incident.status || 'open'))}</span>
+                                                    <span class="tag">${escapeHtml(formatLabel(incident.status || 'open'))}</span>
                                             <span class="tag">${escapeHtml(formatLabel(incident.severity))}</span>
                                         </div>
                                     </div>
@@ -876,7 +890,8 @@ function esc($value): string
                                         <p class="case-summary" style="margin-top: 0; color: var(--text);">This report documents the incident case for internal review, operational tracking, and coordination with the appropriate barangay office. The account below preserves the incident description, classification, and follow-up status in a business-report format.</p>
                                         <div class="case-details" style="margin-top: 14px;">
                                             ${renderDetailRows([
-                                                { label: 'Narrative summary', value: incident.description || 'No narrative provided.' },
+                                                { label: 'Narrative summary', value: shortDescription(incident.description) },
+                                                { label: 'Investigation status', value: formatLabel(incident.status || 'open') },
                                                 { label: 'Operational note', value: `Case assigned to ${incident.barangay_name || incident.barangay || 'the responsible barangay'} with current status ${formatLabel(incident.status || 'open')}.` },
                                                 { label: 'Investigation note', value: `The record contains ${String(logCount)} log entry/entries and ${String(evidenceCount)} evidence image(s).` }
                                             ])}
