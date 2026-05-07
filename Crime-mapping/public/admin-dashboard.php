@@ -43,6 +43,7 @@ $csrfToken = csrf_token();
                 <div class="kpi-card"><div class="kpi-label">Resolved cases</div><div class="kpi-value" id="kpi-resolved">--</div></div>
                 <div class="kpi-card"><div class="kpi-label">High severity alerts</div><div class="kpi-value" id="kpi-high-severity">--</div></div>
             </section>
+            <br>
 
             <section class="panel">
                 <div class="panel-header">
@@ -66,7 +67,7 @@ $csrfToken = csrf_token();
                     <p class="muted">Choose a report type to generate a summary.</p>
                 </div>
             </section>
-
+            <br>
             <section class="panel">
                 <div class="panel-header">
                     <h2>Verification Queue</h2>

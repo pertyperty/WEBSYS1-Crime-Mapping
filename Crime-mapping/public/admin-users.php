@@ -42,6 +42,7 @@ $csrfToken = csrf_token();
                 <div class="summary-chip"><span>Barangay</span><strong id="count-barangay">0</strong></div>
                 <div class="summary-chip"><span>Disabled</span><strong id="count-disabled">0</strong></div>
             </section>
+            <br>
 
             <section class="panel">
                 <div class="panel-header">

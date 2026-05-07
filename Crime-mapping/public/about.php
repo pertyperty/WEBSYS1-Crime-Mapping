@@ -42,14 +42,17 @@ init_secure_session();
                     <h2>What data is shown?</h2>
                     <p>Only verified or approved incidents are displayed on the public map. Pending reports stay private until barangay or admin review.</p>
                 </div>
+                <br>
                 <div class="panel">
                     <h2>How do I report an incident?</h2>
                     <p>Create a registered account, open the map, and submit a report with location, category, and optional media.</p>
                 </div>
+                <br>
                 <div class="panel">
                     <h2>What is community validation?</h2>
                     <p>Guests and registered users can add a thumbs up or down to help moderators assess report credibility.</p>
                 </div>
+                <br>
                 <div class="panel">
                     <h2>Who can manage incidents?</h2>
                     <p>Barangay officials verify reports in their area, while admin users manage the full dataset and system settings.</p>

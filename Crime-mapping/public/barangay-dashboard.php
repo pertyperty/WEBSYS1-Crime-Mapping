@@ -52,7 +52,7 @@ $csrfToken = csrf_token();
                 <div class="summary-chip"><span>Resolved this month</span><strong id="kpi-resolved">--</strong></div>
                 <div class="summary-chip"><span>High risk areas</span><strong id="kpi-high-risk">--</strong></div>
             </section>
-
+            <br>
             <section class="panel">
                 <div class="panel-header">
                     <h2>Quick Actions</h2>
@@ -61,7 +61,7 @@ $csrfToken = csrf_token();
                         <a class="btn-secondary" href="barangay-incidents.php">Review incidents</a>
                     </div>
                 </div>
-
+            
                 <div class="dashboard-toolbar">
                     <input type="month" id="report-month" />
                     <button type="button" class="btn-primary" data-report="monthly">Monthly report</button>
@@ -73,7 +73,7 @@ $csrfToken = csrf_token();
                     <p class="muted">Choose a report type to generate a summary.</p>
                 </div>
             </section>
-
+            <br>
             <section class="panel">
                 <div class="panel-header">
                     <h2>Report Queue</h2>
