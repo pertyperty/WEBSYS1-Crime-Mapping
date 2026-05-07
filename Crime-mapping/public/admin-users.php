@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require __DIR__ . '/guard.php';
 requireRole(['admin']);
 $csrfToken = csrf_token();
@@ -9,31 +9,10 @@ $csrfToken = csrf_token();
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>User Management | Admin</title>
-    <link rel="icon" type="image/png" href="../assets/images/logo/la-trinidad.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../assets/css/site.css" />
-    <style>
-        .user-management-toolbar {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .user-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .user-form-note {
-            margin-top: -4px;
-            color: var(--muted);
-            font-size: 13px;
-        }
-    </style>
 </head>
 <body>
     <div class="page-shell">
@@ -52,8 +31,8 @@ $csrfToken = csrf_token();
             <section class="hero hero-tight">
                 <div class="hero-copy">
                     <p class="eyebrow">Access Control</p>
-                    <h1>Manage registered, barangay, and admin accounts.</h1>
-                    <p class="lead">Create accounts, review activity, update profile data, and disable access when needed.</p>
+                    <h1>Manage registered and barangay accounts.</h1>
+                    <p class="lead">Review account activity, update status, and remove inactive accounts when necessary.</p>
                 </div>
             </section>
 
@@ -67,7 +46,7 @@ $csrfToken = csrf_token();
             <section class="panel">
                 <div class="panel-header">
                     <h2>Users</h2>
-                    <div class="user-management-toolbar">
+                    <div class="dashboard-toolbar">
                         <input id="search-users" type="text" placeholder="Search users" />
                         <select id="filter-role">
                             <option value="">All roles</option>
@@ -80,7 +59,6 @@ $csrfToken = csrf_token();
                             <option value="active">Active</option>
                             <option value="disabled">Disabled</option>
                         </select>
-                        <button type="button" class="btn-primary" id="add-user-btn">Add user</button>
                     </div>
                 </div>
 
@@ -98,77 +76,18 @@ $csrfToken = csrf_token();
         </main>
     </div>
 
-    <div class="modal-overlay" id="user-details-modal">
+    <div class="modal-overlay" id="user-modal">
         <div class="modal-content user-modal">
             <div class="modal-header">
-                <h2 id="user-details-title">User details</h2>
-                <button class="modal-close" id="close-user-details-modal">×</button>
+                <h2 id="user-modal-title">User details</h2>
+                <button class="modal-close" id="close-user-modal">×</button>
             </div>
-            <div id="user-details-body" class="report-output"></div>
+            <div id="user-modal-body" class="report-output"></div>
             <div class="modal-actions">
-                <button type="button" class="btn-secondary" id="toggle-user-status">Toggle status</button>
-                <button type="button" class="btn-secondary" id="disable-user">Disable</button>
+                <button type="button" class="btn-secondary" id="toggle-user-status">Disable</button>
                 <button type="button" class="btn-secondary" id="delete-user">Remove</button>
             </div>
-            <p class="muted" id="user-details-status"></p>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="user-form-modal">
-        <div class="modal-content user-modal">
-            <div class="modal-header">
-                <h2 id="user-form-title">Add user</h2>
-                <button class="modal-close" id="close-user-form-modal">×</button>
-            </div>
-            <form id="user-form" class="form-grid">
-                <label>
-                    <span>Username *</span>
-                    <input type="text" id="user-username" required />
-                </label>
-                <label>
-                    <span>Email *</span>
-                    <input type="email" id="user-email" required />
-                </label>
-                <label>
-                    <span>Contact *</span>
-                    <input type="text" id="user-contact" required />
-                </label>
-                <label>
-                    <span>Address</span>
-                    <input type="text" id="user-address" />
-                </label>
-                <label>
-                    <span>Role *</span>
-                    <select id="user-role" required>
-                        <option value="registered">Registered</option>
-                        <option value="barangay">Barangay</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </label>
-                <label>
-                    <span>Barangay</span>
-                    <select id="user-barangay">
-                        <option value="">Select barangay</option>
-                    </select>
-                </label>
-                <label>
-                    <span>Status *</span>
-                    <select id="user-status" required>
-                        <option value="active">Active</option>
-                        <option value="disabled">Disabled</option>
-                    </select>
-                </label>
-                <label>
-                    <span>Password <span id="password-label-note">*</span></span>
-                    <input type="password" id="user-password" />
-                </label>
-                <p class="user-form-note" id="user-form-note">Password is required when creating a new account.</p>
-                <div class="modal-actions">
-                    <button type="button" class="btn-secondary" id="cancel-user-form">Cancel</button>
-                    <button type="submit" class="btn-primary">Save</button>
-                </div>
-                <p class="muted" id="user-form-status"></p>
-            </form>
+            <p class="muted" id="user-modal-status"></p>
         </div>
     </div>
 
@@ -176,9 +95,7 @@ $csrfToken = csrf_token();
         const csrfToken = <?php echo json_encode($csrfToken); ?>;
         const apiBase = '../api';
         let allUsers = [];
-        let allBarangays = [];
         let selectedUser = null;
-        let formMode = 'create';
 
         function escapeHtml(value) {
             return String(value ?? '')
@@ -196,83 +113,60 @@ $csrfToken = csrf_token();
             document.getElementById('count-disabled').textContent = users.filter((user) => user.status === 'disabled').length;
         }
 
-        function openUserDetails(user) {
+        function openUserModal(user) {
             selectedUser = user;
             document.getElementById('user-modal-title').textContent = user.username;
+            const statusBadge = user.status === 'active'
+                ? '<span class="status-badge status-active">Active</span>'
+                : '<span class="status-badge status-disabled">Disabled</span>';
             document.getElementById('user-modal-body').innerHTML = `
-                <div class="report-panel-card">
-                    <div><strong>Email:</strong> ${escapeHtml(user.email || '-')}</div>
-                    <div><strong>Contact:</strong> ${escapeHtml(user.contact || '-')}</div>
-                    <div><strong>Address:</strong> ${escapeHtml(user.address || '-')}</div>
-                    <div><strong>Role:</strong> ${escapeHtml(user.role || '-')}</div>
-                    <div><strong>Barangay:</strong> ${escapeHtml(user.barangay_name || '-')}</div>
-                    <div><strong>Status:</strong> ${escapeHtml(user.status || '-')}</div>
-                    <div><strong>Reports:</strong> ${escapeHtml(user.incident_count ?? 0)}</div>
-                    <div><strong>Created:</strong> ${escapeHtml(user.created_at || '-')}</div>
+                <div class="user-details-card">
+                    <div class="detail-row">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value">${escapeHtml(user.email || '-')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Contact</span>
+                        <span class="detail-value">${escapeHtml(user.contact || '-')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Address</span>
+                        <span class="detail-value">${escapeHtml(user.address || '-')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Role</span>
+                        <span class="detail-value"><span class="pill">${escapeHtml(user.role || '-')}</span></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Barangay</span>
+                        <span class="detail-value">${escapeHtml(user.barangay_name || '-')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Status</span>
+                        <span class="detail-value">${statusBadge}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Reports</span>
+                        <span class="detail-value">${escapeHtml(user.incident_count ?? 0)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Created</span>
+                        <span class="detail-value">${escapeHtml(user.created_at || '-')}</span>
+                    </div>
                 </div>
             `;
+            const toggleBtn = document.getElementById('toggle-user-status');
+            const isActive = user.status === 'active';
+            toggleBtn.textContent = isActive ? 'Disable' : 'Enable';
+            toggleBtn.classList.toggle('btn-danger', isActive);
+            toggleBtn.classList.toggle('btn-success', !isActive);
             document.getElementById('user-modal-status').textContent = '';
             document.getElementById('user-modal').classList.add('is-open');
         }
 
-        function closeUserDetails() {
-            document.getElementById('user-details-modal').classList.remove('is-open');
+        function closeUserModal() {
+            document.getElementById('user-modal').classList.remove('is-open');
             selectedUser = null;
-        }
-
-        function populateBarangaySelect(selectedId = '') {
-            const select = document.getElementById('user-barangay');
-            select.innerHTML = '<option value="">Select barangay</option>';
-            allBarangays.forEach((barangay) => {
-                const option = document.createElement('option');
-                option.value = String(barangay.barangay_id);
-                option.textContent = barangay.barangay_name;
-                if (String(selectedId) === String(barangay.barangay_id)) {
-                    option.selected = true;
-                }
-                select.appendChild(option);
-            });
-        }
-
-        function openUserForm(mode, user = null) {
-            formMode = mode;
-            const isEdit = mode === 'edit';
-            const modal = document.getElementById('user-form-modal');
-            const title = document.getElementById('user-form-title');
-            const note = document.getElementById('user-form-note');
-            const password = document.getElementById('user-password');
-            const passwordLabel = document.getElementById('password-label-note');
-            const roleSelect = document.getElementById('user-role');
-            const barangaySelect = document.getElementById('user-barangay');
-
-            document.getElementById('user-form').reset();
-            populateBarangaySelect(user?.barangay_id || '');
-
-            title.textContent = isEdit ? 'Edit user' : 'Add user';
-            note.textContent = isEdit ? 'Leave password empty to keep the current one.' : 'Password is required when creating a new account.';
-            password.required = !isEdit;
-            password.value = '';
-            passwordLabel.textContent = isEdit ? '' : '*';
-
-            document.getElementById('user-username').value = user?.username || '';
-            document.getElementById('user-email').value = user?.email || '';
-            document.getElementById('user-contact').value = user?.contact || '';
-            document.getElementById('user-address').value = user?.address || '';
-            roleSelect.value = user?.role || 'registered';
-            document.getElementById('user-status').value = user?.status || 'active';
-
-            if (user && user.role !== 'barangay') {
-                barangaySelect.value = '';
-            }
-
-            barangaySelect.disabled = roleSelect.value !== 'barangay';
-
-            document.getElementById('user-form-status').textContent = '';
-            modal.classList.add('is-open');
-        }
-
-        function closeUserForm() {
-            document.getElementById('user-form-modal').classList.remove('is-open');
         }
 
         async function performUserAction(action, user, extra = {}) {
@@ -342,14 +236,14 @@ $csrfToken = csrf_token();
                     <div><span class="status-badge status-${escapeHtml(String(user.status || '').toLowerCase())}">${escapeHtml(user.status || '-')}</span></div>
                     <div class="user-actions">
                         <button type="button" class="btn-secondary" data-action="view">View</button>
-                        <button type="button" class="btn-secondary" data-action="toggle">Toggle</button>
-                        <button type="button" class="btn-secondary" data-action="disable">Disable</button>
+                        <button type="button" class="btn-secondary status-toggle" data-action="toggle">Toggle</button>
                         <button type="button" class="btn-secondary" data-action="delete">Remove</button>
                     </div>
                 `;
 
+                const toggleButton = row.querySelector('[data-action="toggle"]');
                 row.querySelector('[data-action="view"]').addEventListener('click', () => openUserModal(user));
-                row.querySelector('[data-action="toggle"]').addEventListener('click', async () => {
+                toggleButton.addEventListener('click', async () => {
                     try {
                         await performUserAction('toggle-status', user, { status: user.status === 'active' ? 'disabled' : 'active' });
                         await loadUsers();
@@ -384,7 +278,6 @@ $csrfToken = csrf_token();
                 }
 
                 allUsers = data.users || [];
-                allBarangays = data.barangays || [];
                 renderSummary(allUsers);
                 renderUsers();
             } catch (e) {
@@ -396,26 +289,14 @@ $csrfToken = csrf_token();
         document.getElementById('search-users').addEventListener('input', renderUsers);
         document.getElementById('filter-role').addEventListener('change', renderUsers);
         document.getElementById('filter-status').addEventListener('change', renderUsers);
-        document.getElementById('add-user-btn').addEventListener('click', () => openUserForm('create'));
-
-        document.getElementById('close-user-details-modal').addEventListener('click', closeUserDetails);
-        document.getElementById('user-details-modal').addEventListener('click', (event) => {
-            if (event.target.id === 'user-details-modal') closeUserDetails();
+        document.getElementById('close-user-modal').addEventListener('click', closeUserModal);
+        document.getElementById('user-modal').addEventListener('click', (event) => {
+            if (event.target.id === 'user-modal') closeUserModal();
         });
         document.getElementById('toggle-user-status').addEventListener('click', async () => {
             if (!selectedUser) return;
             try {
                 await performUserAction('toggle-status', selectedUser, { status: selectedUser.status === 'active' ? 'disabled' : 'active' });
-                closeUserDetails();
-                loadUsers();
-            } catch (error) {
-                document.getElementById('user-details-status').textContent = error.message;
-            }
-        });
-        document.getElementById('disable-user').addEventListener('click', async () => {
-            if (!selectedUser) return;
-            try {
-                await performUserAction('toggle-status', selectedUser, { status: 'disabled' });
                 closeUserModal();
                 loadUsers();
             } catch (error) {
@@ -426,74 +307,10 @@ $csrfToken = csrf_token();
             if (!selectedUser || !confirm(`Disable ${selectedUser.username}?`)) return;
             try {
                 await performUserAction('delete', selectedUser);
-                closeUserDetails();
+                closeUserModal();
                 loadUsers();
             } catch (error) {
-                document.getElementById('user-details-status').textContent = error.message;
-            }
-        });
-
-        document.getElementById('close-user-form-modal').addEventListener('click', closeUserForm);
-        document.getElementById('cancel-user-form').addEventListener('click', closeUserForm);
-        document.getElementById('user-form-modal').addEventListener('click', (event) => {
-            if (event.target.id === 'user-form-modal') closeUserForm();
-        });
-
-        document.getElementById('user-role').addEventListener('change', (event) => {
-            const barangaySelect = document.getElementById('user-barangay');
-            barangaySelect.disabled = event.target.value !== 'barangay';
-            if (event.target.value !== 'barangay') {
-                barangaySelect.value = '';
-            }
-        });
-
-        document.getElementById('user-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const statusElement = document.getElementById('user-form-status');
-            statusElement.textContent = 'Saving...';
-
-            const roleValue = document.getElementById('user-role').value;
-            const barangayValue = document.getElementById('user-barangay').value;
-            const payload = {
-                action: formMode === 'edit' ? 'update' : 'create',
-                username: document.getElementById('user-username').value.trim(),
-                email: document.getElementById('user-email').value.trim(),
-                contact: document.getElementById('user-contact').value.trim(),
-                address: document.getElementById('user-address').value.trim(),
-                role: roleValue,
-                status: document.getElementById('user-status').value,
-                barangay_id: barangayValue ? parseInt(barangayValue, 10) : 0,
-                password: document.getElementById('user-password').value
-            };
-
-            if (formMode === 'edit' && selectedUser) {
-                payload.user_id = selectedUser.user_id;
-            }
-
-            if (formMode === 'edit' && !payload.password) {
-                delete payload.password;
-            }
-
-            try {
-                const response = await fetch(`${apiBase}/users-manage.php`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': csrfToken
-                    },
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-                if (!result.ok) {
-                    throw new Error(result.error || 'Save failed.');
-                }
-
-                statusElement.textContent = 'Saved.';
-                closeUserForm();
-                selectedUser = null;
-                await loadUsers();
-            } catch (error) {
-                statusElement.textContent = error.message;
+                document.getElementById('user-modal-status').textContent = error.message;
             }
         });
 
