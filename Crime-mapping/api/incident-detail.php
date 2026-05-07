@@ -70,8 +70,25 @@ $imagesStmt = $pdo->prepare('
 $imagesStmt->execute([':incident_id' => $incidentId]);
 $images = $imagesStmt->fetchAll();
 
+$logsStmt = $pdo->prepare('
+    SELECT
+        l.log_id,
+        l.action,
+        l.remarks,
+        l.created_at,
+        u.username AS created_by_username,
+        u.role AS created_by_role
+    FROM incident_logs l
+    LEFT JOIN users u ON l.created_by = u.user_id
+    WHERE l.incident_id = :incident_id
+    ORDER BY l.created_at ASC, l.log_id ASC
+');
+$logsStmt->execute([':incident_id' => $incidentId]);
+$logs = $logsStmt->fetchAll();
+
 echo json_encode([
     'ok' => true,
     'incident' => $incident,
-    'images' => $images
+    'images' => $images,
+    'logs' => $logs
 ]);

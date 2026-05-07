@@ -9,6 +9,7 @@ $csrfToken = csrf_token();
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>FAQ Management | Admin</title>
+    <link rel="icon" type="image/png" href="../assets/images/logo/la-trinidad.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -287,13 +288,18 @@ $csrfToken = csrf_token();
 
         async function loadFAQs() {
             try {
-                const resp = await fetch('../api/faq.php');
+                const resp = await fetch('../api/faq.php?include_inactive=1');
                 const result = await resp.json();
                 if (!result.ok) {
                     document.getElementById('faq-list').innerHTML = '<p class="muted">Failed to load FAQs</p>';
                     return;
                 }
-                faqs = result.data;
+                faqs = Array.isArray(result.data) ? result.data.map((faq) => ({
+                    ...faq,
+                    question: String(faq.question ?? ''),
+                    answer: String(faq.answer ?? ''),
+                    category: String(faq.category ?? '')
+                })) : [];
                 renderFAQs();
             } catch (e) {
                 console.error('Failed to load FAQs', e);
