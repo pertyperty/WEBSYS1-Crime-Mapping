@@ -12,6 +12,7 @@ if (!function_exists('render_navbar')) {
             case 'admin':
                 $items = [
                     ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => 'admin-dashboard.php'],
+                    ['key' => 'reports', 'label' => 'Reports', 'href' => 'report-export.php'],
                     ['key' => 'map', 'label' => 'Map', 'href' => 'admin-map.php'],
                     ['key' => 'incidents', 'label' => 'Incidents', 'href' => 'admin-incidents.php'],
                     ['key' => 'faq', 'label' => 'FAQs', 'href' => 'admin-faq.php'],
@@ -21,6 +22,7 @@ if (!function_exists('render_navbar')) {
             case 'barangay':
                 $items = [
                     ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => 'barangay-dashboard.php'],
+                    ['key' => 'reports', 'label' => 'Reports', 'href' => 'report-export.php'],
                     ['key' => 'map', 'label' => 'Map', 'href' => 'barangay-map.php'],
                     ['key' => 'incidents', 'label' => 'Incidents', 'href' => 'barangay-incidents.php'],
                     ['key' => 'add-incident', 'label' => 'Add Incident', 'href' => 'barangay-add-incident.php'],

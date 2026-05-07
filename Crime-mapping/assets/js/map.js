@@ -240,7 +240,7 @@ function updateExportLink(incidentId) {
         return;
     }
 
-    exportPdfButton.setAttribute("href", `admin-incident-export.php?incident_id=${encodeURIComponent(incidentId)}`);
+    exportPdfButton.setAttribute("href", `incident-export.php?incident_id=${encodeURIComponent(incidentId)}&autoprint=1`);
     exportPdfButton.removeAttribute("aria-disabled");
 }
 

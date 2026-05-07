@@ -52,6 +52,7 @@ $csrfToken = csrf_token();
                         <a class="btn-secondary" href="admin-users.php">Manage users</a>
                         <a class="btn-secondary" href="admin-faq.php">Manage FAQs</a>
                         <a class="btn-secondary" href="admin-incidents.php">View incidents</a>
+                        <a class="btn-secondary" href="report-export.php?type=forensics&autoprint=1">Export reports</a>
                     </div>
                 </div>
 
