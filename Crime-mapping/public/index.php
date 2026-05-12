@@ -1,6 +1,10 @@
 <?php
 require __DIR__ . '/../api/security.php';
+require __DIR__ . '/../api/db.php';
 init_secure_session();
+
+// Determine user role for navbar
+$userRole = $_SESSION['role'] ?? 'public';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -25,7 +29,7 @@ init_secure_session();
                     <div class="brand-subtitle">Benguet, Philippines</div>
                 </div>
             </div>
-            <?php require_once __DIR__ . '/_navbar.php'; render_navbar('dashboard', 'public'); ?>
+            <?php require_once __DIR__ . '/_navbar.php'; render_navbar('dashboard', $userRole); ?>
         </header>
 
         <main>

@@ -779,7 +779,7 @@ function resetFilters() {
 
 async function loadFilters() {
     try {
-        const response = await fetch(`${apiBase}/filters.php`);
+        const response = await fetch(`${apiBase}/filters.php`, { credentials: 'include' });
         const payload = await response.json();
         if (!payload.ok) {
             return;
