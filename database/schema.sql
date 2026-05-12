@@ -98,11 +98,32 @@ CREATE TABLE notifications (
     incident_id INT NULL,
     notification_type ENUM('new_report', 'status_update', 'high_severity', 'mention') NOT NULL,
     message VARCHAR(255) NOT NULL,
+    sms_status ENUM('pending', 'sent', 'failed') NULL DEFAULT NULL,
+    sms_sent_at TIMESTAMP NULL,
     is_read TINYINT(1) NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (barangay_id) REFERENCES barangays(barangay_id) ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY (incident_id) REFERENCES incidents(incident_id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- SMS notification queue
+CREATE TABLE notification_sms_queue (
+    queue_id INT AUTO_INCREMENT PRIMARY KEY,
+    notification_id INT NOT NULL,
+    user_id INT NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    message VARCHAR(255) NOT NULL,
+    status ENUM('pending', 'processing', 'sent', 'failed') NOT NULL DEFAULT 'pending',
+    attempts TINYINT(1) NOT NULL DEFAULT 0,
+    last_error TEXT NULL,
+    locked_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (notification_id) REFERENCES notifications(notification_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    INDEX idx_status (status),
+    INDEX idx_locked_at (locked_at)
 );
 
 -- FAQ Management

@@ -4,6 +4,7 @@ require __DIR__ . '/security.php';
 init_secure_session();
 
 require __DIR__ . '/db.php';
+require __DIR__ . '/sms-helper.php';
 
 // Check authentication
 if (!isset($_SESSION['user_id'])) {
@@ -97,7 +98,7 @@ $logStmt->execute([
 ]);
 
 $recipientStmt = $pdo->prepare('
-    SELECT user_id
+    SELECT user_id, contact
     FROM users
     WHERE status = "active" AND (role = "admin" OR (role = "barangay" AND barangay_id = :barangay_id))
 ');
@@ -106,18 +107,32 @@ $recipients = $recipientStmt->fetchAll();
 
 $message = sprintf('Incident #%d status updated to %s', $incidentId, str_replace('_', ' ', $newStatus));
 $notificationStmt = $pdo->prepare('
-    INSERT INTO notifications (user_id, barangay_id, incident_id, notification_type, message)
-    VALUES (:user_id, :barangay_id, :incident_id, :notification_type, :message)
+    INSERT INTO notifications (user_id, barangay_id, incident_id, notification_type, message, sms_status)
+    VALUES (:user_id, :barangay_id, :incident_id, :notification_type, :message, :sms_status)
 ');
 
 foreach ($recipients as $recipient) {
+    $hasSms = is_valid_phone_number((string) ($recipient['contact'] ?? '')) && should_send_sms_for_notification_type('status_update');
+    $smsStatus = $hasSms ? 'pending' : null;
+
     $notificationStmt->execute([
         ':user_id' => (int) $recipient['user_id'],
         ':barangay_id' => (int) $incident['barangay_id'],
         ':incident_id' => $incidentId,
         ':notification_type' => 'status_update',
-        ':message' => $message
+        ':message' => $message,
+        ':sms_status' => $smsStatus
     ]);
+
+    if ($hasSms) {
+        enqueue_notification_sms(
+            $pdo,
+            (int) $pdo->lastInsertId(),
+            (int) $recipient['user_id'],
+            (string) $recipient['contact'],
+            $message
+        );
+    }
 }
 
 echo json_encode([
