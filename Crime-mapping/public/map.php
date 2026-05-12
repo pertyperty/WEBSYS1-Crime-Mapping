@@ -30,7 +30,6 @@ $showPendingStatus = false;
 $showDetailsHeader = false;
 $validationLabel = 'Is this report accurate?';
 $validationButtons = 'public'; // public, admin, or barangay
-$navbarRole = 'public';
 $showReportCrimeButton = true;
 $showExportPdf = false;
 
@@ -43,7 +42,6 @@ if ($userRole === 'admin') {
     $showDetailsHeader = true;
     $validationLabel = 'Report Actions';
     $validationButtons = 'admin';
-    $navbarRole = 'admin';
     $showReportCrimeButton = false;
     $showExportPdf = true;
 } elseif ($userRole === 'barangay') {
@@ -56,7 +54,6 @@ if ($userRole === 'admin') {
     $showDetailsHeader = false;
     $validationLabel = 'Verification & Status';
     $validationButtons = 'barangay';
-    $navbarRole = 'barangay';
     $showReportCrimeButton = true;
     $showExportPdf = false;
 }
@@ -137,10 +134,10 @@ if ($userRole === 'admin') {
                     <img class="brand-logo" src="../assets/images/logo/la-trinidad.png" alt="La Trinidad logo" />
                     <div>
                         <div class="brand-title">La Trinidad Crime Mapping</div>
-                        <div class="brand-subtitle">Interactive map view</div>
+                        <div class="brand-subtitle"><?php echo htmlspecialchars($mapSubtitle, ENT_QUOTES, 'UTF-8'); ?></div>
                     </div>
                 </div>
-                    <?php require_once __DIR__ . '/_navbar.php'; render_navbar('map', 'public'); ?>
+                <?php require_once __DIR__ . '/_navbar.php'; render_navbar('map', $userRole ?? 'public'); ?>
             </header>
 
             <!-- Hamburger button to toggle filters (top-left of map) -->

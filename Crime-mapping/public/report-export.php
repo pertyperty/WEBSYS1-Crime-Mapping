@@ -5,7 +5,16 @@ requireRole(['admin', 'barangay']);
 require __DIR__ . '/../api/db.php';
 
 $viewerRole = $_SESSION['role'] ?? null;
+$viewerUserId = $_SESSION['user_id'] ?? null;
 $barangayName = null;
+
+// Validate role
+if (!in_array($viewerRole, ['admin', 'barangay'], true)) {
+    http_response_code(403);
+    echo 'Access denied.';
+    exit;
+}
+
 if ($viewerRole === 'barangay' && isset($_SESSION['barangay_id'])) {
     $stmt = $pdo->prepare('SELECT barangay_name FROM barangays WHERE barangay_id = :id');
     $stmt->execute([':id' => $_SESSION['barangay_id']]);
@@ -587,7 +596,7 @@ function esc($value): string
         }
     </style>
 </head>
-<body>
+<body class="page-report-export">
     <div class="export-page">
         <div class="export-topbar">
             <div class="export-brand">

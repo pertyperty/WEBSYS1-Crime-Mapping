@@ -28,7 +28,7 @@ $isBarangay = $userRole === 'barangay';
 
 $subtitle = $isAdmin ? 'Admin control' : 'Barangay officer';
 $heroTitle = $isAdmin 
-    ? 'Compact incident cards with auto-cycling images.'
+    ? 'La-Trinidad Incidents'
     : 'Incidents in ' . htmlspecialchars($barangayName ?? 'your area') . '.';
 $heroLead = $isAdmin
     ? 'Scan each report quickly, then open the map for spatial context or detail review.'
@@ -53,7 +53,7 @@ $showBarangayColumn = $isAdmin;
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../assets/css/site.css" />
 </head>
-<body>
+<body class="page-incidents">
     <div class="page-shell">
         <header class="site-header">
             <div class="brand">

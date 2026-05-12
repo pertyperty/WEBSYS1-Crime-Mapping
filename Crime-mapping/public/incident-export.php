@@ -505,7 +505,7 @@ $autoPrint = (($_GET['autoprint'] ?? '') === '1');
         }
     </style>
 </head>
-<body>
+<body class="page-export">
     <div class="export-page">
         <div class="export-topbar">
             <div class="export-brand">
