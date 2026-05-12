@@ -203,7 +203,7 @@ $csrfToken = csrf_token();
         }
     </style>
 </head>
-<body>
+<body class="page-admin-faq">
     <div class="page-shell">
         <header class="site-header">
             <div class="brand">

@@ -24,10 +24,23 @@ $incidents = incident_fetch_many($pdo, $viewer, $filters, [
     'include_images' => false,
 ]);
 
-$filename = 'crime-incidents-' . date('Ymd-His') . '.csv';
+// Generate filename with timestamp and applied filters
+$filterSuffix = '';
+if (!empty($filters['status'])) {
+    $filterSuffix .= '-' . $filters['status'];
+}
+if (!empty($filters['date_start'])) {
+    $filterSuffix .= '-from-' . str_replace('-', '', $filters['date_start']);
+}
+
+$filename = 'crime-incidents-' . date('Ymd-His') . $filterSuffix . '.csv';
+
 header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename="' . $filename . '"');
 header('X-Content-Type-Options: nosniff');
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
 
 $out = fopen('php://output', 'w');
 if ($out === false) {
@@ -36,9 +49,35 @@ if ($out === false) {
     exit;
 }
 
-fputcsv($out, ['Incident ID', 'Category', 'Crime Type', 'Title', 'Description', 'Barangay', 'Status', 'Severity', 'Date', 'Time', 'Latitude', 'Longitude']);
+// Add BOM for Excel UTF-8 compatibility
+fwrite($out, "\xEF\xBB\xBF");
 
+// CSV Headers
+$headers = [
+    'Incident ID',
+    'Category',
+    'Crime Type',
+    'Title',
+    'Description',
+    'Barangay',
+    'Status',
+    'Severity',
+    'Date',
+    'Time',
+    'Latitude',
+    'Longitude',
+    'Source',
+    'Visibility',
+    'Reported By'
+];
+
+fputcsv($out, $headers);
+
+// CSV Data Rows
 foreach ($incidents as $incident) {
+    $visibility = ($incident['is_public'] ?? false) ? 'Public' : 'Private';
+    $source = ucfirst($incident['source'] ?? 'unknown');
+    
     fputcsv($out, [
         $incident['id'] ?? '',
         $incident['type'] ?? '',
@@ -46,12 +85,15 @@ foreach ($incidents as $incident) {
         $incident['title'] ?? '',
         $incident['description'] ?? '',
         $incident['barangay'] ?? '',
-        $incident['status'] ?? '',
-        $incident['severity'] ?? '',
+        ucfirst($incident['status'] ?? ''),
+        ucfirst($incident['severity'] ?? ''),
         $incident['date'] ?? '',
         $incident['time'] ?? '',
         $incident['lat'] ?? '',
         $incident['lng'] ?? '',
+        $source,
+        $visibility,
+        $incident['reported_by'] ?? 'N/A'
     ]);
 }
 

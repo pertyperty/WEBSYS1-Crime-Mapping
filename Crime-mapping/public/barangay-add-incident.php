@@ -15,7 +15,7 @@ $csrfToken = csrf_token();
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../assets/css/site.css" />
 </head>
-<body>
+<body class="page-add-incident">
     <div class="page-shell">
         <header class="site-header">
             <div class="brand">
