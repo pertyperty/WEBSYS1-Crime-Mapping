@@ -1,10 +1,32 @@
 <?php
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+ini_set('display_errors', '0');
+error_reporting(E_ALL);
+set_exception_handler(function ($exception) {
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    $message = is_object($exception) && method_exists($exception, 'getMessage')
+        ? $exception->getMessage()
+        : 'Internal server error.';
+    error_log('update-status exception: ' . $message);
+    echo json_encode([
+        'ok' => false,
+        'error' => 'Server error during status update.',
+        'details' => $message
+    ]);
+    exit;
+});
+set_error_handler(function ($severity, $message, $file, $line) {
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
+
 require __DIR__ . '/security.php';
 init_secure_session();
 
 require __DIR__ . '/db.php';
 require __DIR__ . '/sms-helper.php';
+
+ensure_notifications_sms_columns($pdo);
 
 // Check authentication
 if (!isset($_SESSION['user_id'])) {
@@ -28,18 +50,15 @@ if (!$payload) {
     exit;
 }
 
-$required = ['incident_id', 'new_status', 'remarks'];
-foreach ($required as $field) {
-    if (!isset($payload[$field]) || $payload[$field] === '') {
-        http_response_code(422);
-        echo json_encode(['ok' => false, 'error' => 'Missing required fields.']);
-        exit;
-    }
+if (!isset($payload['incident_id']) || !isset($payload['new_status'])) {
+    http_response_code(422);
+    echo json_encode(['ok' => false, 'error' => 'Missing required fields.']);
+    exit;
 }
 
 $incidentId = (int) $payload['incident_id'];
 $newStatus = trim($payload['new_status']);
-$remarks = trim($payload['remarks']);
+$remarks = isset($payload['remarks']) ? trim($payload['remarks']) : '';
 
 // Validate status value
 $validStatuses = ['pending', 'under_investigation', 'action_taken', 'resolved', 'dismissed'];

@@ -5,6 +5,8 @@ init_secure_session();
 require __DIR__ . '/db.php';
 require __DIR__ . '/sms-helper.php';
 
+ensure_notifications_sms_columns($pdo);
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['ok' => false, 'error' => 'Method not allowed.']);

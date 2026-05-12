@@ -22,6 +22,24 @@ function is_valid_phone_number(string $phone): bool
     return (bool) preg_match('/^\+\d{10,15}$/', $normalized);
 }
 
+function ensure_notifications_sms_columns(PDO $pdo): void
+{
+    $stmt = $pdo->prepare(
+        'SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :table AND COLUMN_NAME IN ("sms_status", "sms_sent_at")'
+    );
+    $stmt->execute([':table' => 'notifications']);
+    $existingColumns = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $existing = array_flip($existingColumns);
+
+    if (!isset($existing['sms_status'])) {
+        $pdo->exec("ALTER TABLE notifications ADD COLUMN sms_status ENUM('pending','sent','failed') NULL DEFAULT NULL");
+    }
+
+    if (!isset($existing['sms_sent_at'])) {
+        $pdo->exec('ALTER TABLE notifications ADD COLUMN sms_sent_at TIMESTAMP NULL');
+    }
+}
+
 function should_send_sms_for_notification_type(string $notificationType): bool
 {
     return in_array($notificationType, ['high_severity', 'status_update'], true);

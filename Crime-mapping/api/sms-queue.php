@@ -4,6 +4,8 @@ header('Content-Type: application/json');
 require __DIR__ . '/db.php';
 require __DIR__ . '/sms-helper.php';
 
+ensure_notifications_sms_columns($pdo);
+
 if (PHP_SAPI !== 'cli') {
     require __DIR__ . '/security.php';
     init_secure_session();

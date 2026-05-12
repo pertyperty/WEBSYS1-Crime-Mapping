@@ -959,14 +959,22 @@ async function updateIncidentStatus(newStatus, remarks = '') {
             })
         });
 
-        const data = await response.json();
+        let data;
+        try {
+            data = await response.json();
+        } catch (parseError) {
+            const errorText = await response.text();
+            console.error('Status update invalid JSON response', errorText);
+            throw parseError;
+        }
+
         if (data.ok) {
             // refresh markers and detail
             await loadIncidents();
             await loadIncidentDetail(currentIncidentId);
             if (uploadStatus) uploadStatus.textContent = 'Status updated.';
         } else {
-            console.error('Status update failed', data.error);
+            console.error('Status update failed', data.error, data.details || '');
             if (uploadStatus) uploadStatus.textContent = data.error || 'Status update failed.';
         }
     } catch (error) {

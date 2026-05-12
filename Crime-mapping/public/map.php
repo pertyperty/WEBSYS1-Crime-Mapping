@@ -42,7 +42,7 @@ if ($userRole === 'admin') {
     $showDetailsHeader = true;
     $validationLabel = 'Report Actions';
     $validationButtons = 'admin';
-    $showReportCrimeButton = false;
+    $showReportCrimeButton = true;
     $showExportPdf = true;
 } elseif ($userRole === 'barangay') {
     $filterHeaderEyebrow = 'Barangay Control';
@@ -76,8 +76,8 @@ if ($userRole === 'admin') {
         <aside class="map-filters">
             <div class="filters-header">
                 <div>
-                    <div class="eyebrow">Filters</div>
-                    <h2>Crime Map</h2>
+                    <div class="eyebrow"><?php echo htmlspecialchars($filterHeaderEyebrow, ENT_QUOTES, 'UTF-8'); ?></div>
+                    <h2><?php echo htmlspecialchars($filterHeaderTitle, ENT_QUOTES, 'UTF-8'); ?></h2>
                 </div>
                 <div class="u-hstack">
                     <button type="button" id="close-filters" class="btn-tertiary close-filters">Close</button>
@@ -125,7 +125,8 @@ if ($userRole === 'admin') {
             <div class="filter-actions">
                 <button class="btn-secondary" id="reset-filters">Reset</button>
             </div>
-            <p class="muted filter-hint">Filters apply automatically as you change them.</p>
+            <p class="muted filter-hint"><?php echo htmlspecialchars($filterHint, ENT_QUOTES, 'UTF-8'); ?></p>
+            <p class="muted" id="barangay-filter-notice"></p>
         </aside>
 
             <main class="map-stage">
@@ -179,7 +180,13 @@ if ($userRole === 'admin') {
                 </div>
             </div>
             <div class="details-actions">
-                <button type="button" class="btn-primary" id="report-crime">Report a crime</button>
+                <?php if ($showReportCrimeButton): ?>
+                    <button type="button" class="btn-primary" id="report-crime">Report a crime</button>
+                <?php endif; ?>
+                <?php if (in_array($userRole, ['admin', 'barangay'], true)): ?>
+                    <button type="button" class="btn-secondary hidden" id="verify-btn">Verify</button>
+                    <button type="button" class="btn-secondary hidden" id="escalate-btn">Escalate</button>
+                <?php endif; ?>
             </div>
 
             <div class="report-panel" id="report-panel">
@@ -208,7 +215,7 @@ if ($userRole === 'admin') {
                         <span>Description</span>
                         <textarea id="report-description" rows="4" placeholder="Describe what happened" required></textarea>
                     </label>
-                    <label class="u-hidden">
+                    <label<?php echo $userRole === 'admin' ? '' : ' class="u-hidden"'; ?>>
                         <span>Barangay</span>
                         <select id="report-barangay" required></select>
                     </label>
@@ -265,6 +272,13 @@ if ($userRole === 'admin') {
                         </label>
                         <p class="muted" id="upload-status"></p>
                     </div>
+
+                    <div class="detail-modal-actions">
+                        <?php if (in_array($userRole, ['admin', 'barangay'], true)): ?>
+                            <button type="button" class="btn-secondary" id="verify-btn">Verify</button>
+                            <button type="button" class="btn-secondary" id="escalate-btn">Escalate</button>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </aside>
@@ -273,6 +287,7 @@ if ($userRole === 'admin') {
     <script>
         window.csrfToken = <?php echo json_encode(csrf_token()); ?>;
         window.userRole = <?php echo json_encode($_SESSION['role'] ?? null); ?>;
+        window.userBarangayName = <?php echo json_encode($barangayName); ?>;
         window.currentUser = {
             id: <?php echo json_encode($_SESSION['user_id'] ?? null); ?>,
             username: <?php echo json_encode($_SESSION['username'] ?? null); ?>,
