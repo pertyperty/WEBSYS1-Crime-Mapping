@@ -11,10 +11,10 @@ if (!function_exists('render_navbar')) {
         switch ($scope) {
             case 'admin':
                 $items = [
-                    ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => 'admin-dashboard.php'],
+                    ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => 'dashboard.php'],
                     ['key' => 'reports', 'label' => 'Reports', 'href' => 'report-export.php'],
-                    ['key' => 'map', 'label' => 'Map', 'href' => 'admin-map.php'],
-                    ['key' => 'incidents', 'label' => 'Incidents', 'href' => 'admin-incidents.php'],
+                    ['key' => 'map', 'label' => 'Map', 'href' => 'map.php'],
+                    ['key' => 'incidents', 'label' => 'Incidents', 'href' => 'incidents.php'],
                     ['key' => 'crime-types', 'label' => 'Crime Types', 'href' => 'admin-crime-types.php'],
                     ['key' => 'faq', 'label' => 'FAQs', 'href' => 'admin-faq.php'],
                     ['key' => 'users', 'label' => 'User Management', 'href' => 'admin-users.php'],
@@ -22,10 +22,10 @@ if (!function_exists('render_navbar')) {
                 break;
             case 'barangay':
                 $items = [
-                    ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => 'barangay-dashboard.php'],
+                    ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => 'dashboard.php'],
                     ['key' => 'reports', 'label' => 'Reports', 'href' => 'report-export.php'],
-                    ['key' => 'map', 'label' => 'Map', 'href' => 'barangay-map.php'],
-                    ['key' => 'incidents', 'label' => 'Incidents', 'href' => 'barangay-incidents.php'],
+                    ['key' => 'map', 'label' => 'Map', 'href' => 'map.php'],
+                    ['key' => 'incidents', 'label' => 'Incidents', 'href' => 'incidents.php'],
                     ['key' => 'add-incident', 'label' => 'Add Incident', 'href' => 'barangay-add-incident.php'],
                 ];
                 break;

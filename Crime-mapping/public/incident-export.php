@@ -513,7 +513,7 @@ $autoPrint = (($_GET['autoprint'] ?? '') === '1');
                 <div>Report Export</div>
             </div>
             <div class="export-actions">
-                <a class="export-btn" href="<?php echo $viewerRole === 'admin' ? 'admin-dashboard.php' : 'barangay-dashboard.php'; ?>">Back</a>
+                <a class="export-btn" href="dashboard.php">Back</a>
                 <button class="export-btn primary" type="button" id="print-btn">Print / Save as PDF</button>
             </div>
         </div>

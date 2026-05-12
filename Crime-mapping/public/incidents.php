@@ -1,15 +1,45 @@
 <?php
 require __DIR__ . '/guard.php';
-requireRole(['barangay']);
-
 require __DIR__ . '/../api/db.php';
+init_secure_session();
+
+// Determine user role
+$userRole = $_SESSION['role'] ?? null;
+$barangayId = $_SESSION['barangay_id'] ?? null;
 $barangayName = null;
-if (isset($_SESSION['barangay_id'])) {
+
+// Validate role
+if (!in_array($userRole, ['admin', 'barangay'], true)) {
+    header('Location: login.php');
+    exit;
+}
+
+// Fetch barangay name for barangay users
+if ($userRole === 'barangay' && isset($barangayId)) {
     $stmt = $pdo->prepare('SELECT barangay_name FROM barangays WHERE barangay_id = :id');
-    $stmt->execute([':id' => $_SESSION['barangay_id']]);
+    $stmt->execute([':id' => $barangayId]);
     $result = $stmt->fetch();
     $barangayName = $result ? $result['barangay_name'] : null;
 }
+
+// Configuration per role
+$isAdmin = $userRole === 'admin';
+$isBarangay = $userRole === 'barangay';
+
+$subtitle = $isAdmin ? 'Admin control' : 'Barangay officer';
+$heroTitle = $isAdmin 
+    ? 'Compact incident cards with auto-cycling images.'
+    : 'Incidents in ' . htmlspecialchars($barangayName ?? 'your area') . '.';
+$heroLead = $isAdmin
+    ? 'Scan each report quickly, then open the map for spatial context or detail review.'
+    : 'Review current reports, then add an incident directly when the map needs a local record.';
+$searchPlaceholder = $isAdmin
+    ? 'Search incidents by title, barangay, or description...'
+    : 'Search incidents by title or description...';
+$incidentsApiEndpoint = $isAdmin ? 'admin-incidents.php' : 'barangay-incidents.php';
+$mapPageEndpoint = 'map.php';
+$showAddIncidentButton = $isBarangay;
+$showBarangayColumn = $isAdmin;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -27,21 +57,21 @@ if (isset($_SESSION['barangay_id'])) {
     <div class="page-shell">
         <header class="site-header">
             <div class="brand">
-                <img class="brand-logo" src="../assets/images/logo/la-trinidad.png" alt="La Trinidad logo" />
+                <img class="brand-logo" src="../assets/images/logo/la-trinidad.png" alt="La Trinidad" />
                 <div>
                     <div class="brand-title">Crime Mapping</div>
-                    <div class="brand-subtitle">Barangay officer</div>
+                    <div class="brand-subtitle"><?php echo htmlspecialchars($subtitle, ENT_QUOTES, 'UTF-8'); ?></div>
                 </div>
             </div>
-            <?php require_once __DIR__ . '/_navbar.php'; render_navbar('incidents', 'barangay'); ?>
+            <?php require_once __DIR__ . '/_navbar.php'; render_navbar('incidents', $userRole); ?>
         </header>
 
         <main>
             <section class="hero hero-tight">
                 <div class="hero-copy">
                     <p class="eyebrow">Incident Management</p>
-                    <h1>Incidents in <?php echo htmlspecialchars($barangayName ?? 'your area'); ?>.</h1>
-                    <p class="lead">Review current reports, then add an incident directly when the map needs a local record.</p>
+                    <h1><?php echo htmlspecialchars($heroTitle, ENT_QUOTES, 'UTF-8'); ?></h1>
+                    <p class="lead"><?php echo htmlspecialchars($heroLead, ENT_QUOTES, 'UTF-8'); ?></p>
                 </div>
             </section>
 
@@ -49,7 +79,7 @@ if (isset($_SESSION['barangay_id'])) {
                 <div class="panel-header">
                     <h2>Filters</h2>
                     <div class="incident-filterbar">
-                        <input type="text" id="search-incidents" placeholder="Search incidents by title or description..." />
+                        <input type="text" id="search-incidents" placeholder="<?php echo htmlspecialchars($searchPlaceholder, ENT_QUOTES, 'UTF-8'); ?>" />
                         <select id="filter-status">
                             <option value="">All statuses</option>
                             <option value="pending">Pending</option>
@@ -58,7 +88,9 @@ if (isset($_SESSION['barangay_id'])) {
                             <option value="resolved">Resolved</option>
                             <option value="dismissed">Dismissed</option>
                         </select>
-                        <a class="btn-primary" href="barangay-add-incident.php">Add incident</a>
+                        <?php if ($showAddIncidentButton): ?>
+                            <a class="btn-primary" href="barangay-add-incident.php">Add incident</a>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -73,6 +105,11 @@ if (isset($_SESSION['barangay_id'])) {
 
     <script>
         const apiBase = '../api';
+        const isAdmin = <?php echo $isAdmin ? 'true' : 'false'; ?>;
+        const mapPageEndpoint = <?php echo json_encode($mapPageEndpoint); ?>;
+        const incidentsApiEndpoint = <?php echo json_encode($incidentsApiEndpoint); ?>;
+        const barangayName = <?php echo json_encode($barangayName); ?>;
+        
         let allIncidents = [];
         const carouselTimers = new Map();
 
@@ -133,8 +170,11 @@ if (isset($_SESSION['barangay_id'])) {
 
         async function loadIncidents() {
             try {
-                const query = new URLSearchParams({ barangay: <?php echo json_encode($barangayName); ?> }).toString();
-                const response = await fetch(`${apiBase}/barangay-incidents.php?${query}`);
+                let url = `${apiBase}/${incidentsApiEndpoint}`;
+                if (!isAdmin && barangayName) {
+                    url += `?${new URLSearchParams({ barangay: barangayName }).toString()}`;
+                }
+                const response = await fetch(url);
                 const data = await response.json();
                 allIncidents = data.ok ? data.incidents : [];
                 renderIncidents(allIncidents);
@@ -147,7 +187,8 @@ if (isset($_SESSION['barangay_id'])) {
         function renderIncidents(incidents) {
             const container = document.getElementById('incidents-container');
             if (!incidents || incidents.length === 0) {
-                container.innerHTML = '<div class="incidents-empty u-span-full"><p>No incidents in your area</p></div>';
+                const noDataMessage = isAdmin ? 'No incidents found' : 'No incidents in your area';
+                container.innerHTML = `<div class="incidents-empty u-span-full"><p>${escapeHtml(noDataMessage)}</p></div>`;
                 return;
             }
 
@@ -161,6 +202,44 @@ if (isset($_SESSION['barangay_id'])) {
                 const typeName = escapeHtml(incident.type_name);
                 const date = escapeHtml(incident.date);
                 const severity = escapeHtml(incident.severity);
+                const imageCount = Number(incident.image_count || 0);
+
+                let metaHtml = '';
+                if (isAdmin) {
+                    const barangay = escapeHtml(incident.barangay);
+                    metaHtml = `
+                        <div><strong>Barangay</strong>${barangay}</div>
+                        <div><strong>Type</strong>${typeName}</div>
+                        <div><strong>Date</strong>${date}</div>
+                        <div><strong>Severity</strong><span class="severity-badge severity-${severityClass}">${severity}</span></div>
+                    `;
+                } else {
+                    metaHtml = `
+                        <div><strong>Type</strong>${typeName}</div>
+                        <div><strong>Date</strong>${date}</div>
+                        <div><strong>Severity</strong><span class="severity-badge severity-${severityClass}">${severity}</span></div>
+                        <div><strong>Status</strong>${statusLabel}</div>
+                    `;
+                }
+
+                let footerHtml = '';
+                if (isAdmin) {
+                    footerHtml = `
+                        <span class="incident-mini-note">ID: ${id} ${imageCount ? `• ${imageCount} image${imageCount > 1 ? 's' : ''}` : ''}</span>
+                        <span class="u-hstack u-hstack-wrap u-hstack-end u-gap-12">
+                            <a href="${escapeHtml(mapPageEndpoint)}?incident=${id}" class="link-small" onclick="event.stopPropagation()">View on Map →</a>
+                            <a href="incident-export.php?incident_id=${id}&autoprint=1" class="link-small" target="_blank" rel="noopener" onclick="event.stopPropagation()">Export PDF →</a>
+                        </span>
+                    `;
+                } else {
+                    footerHtml = `
+                        <span class="incident-mini-note">ID: ${id}</span>
+                        <span class="u-hstack">
+                            <a href="${escapeHtml(mapPageEndpoint)}?incident=${id}" class="link-small" onclick="event.stopPropagation()">View on Map →</a>
+                            <a href="incident-export.php?incident_id=${id}&autoprint=1" class="link-small" target="_blank" rel="noopener" onclick="event.stopPropagation()">Export PDF →</a>
+                        </span>
+                    `;
+                }
 
                 return `
                     <article class="compact-card incident-report-card" onclick="viewIncident(${id})">
@@ -170,15 +249,10 @@ if (isset($_SESSION['barangay_id'])) {
                             <span class="status-badge status-${statusClass}">${statusLabel}</span>
                             <p class="compact-card-text">${description}</p>
                             <div class="compact-card-meta">
-                                <div><strong>Type</strong>${typeName}</div>
-                                <div><strong>Date</strong>${date}</div>
-                                <div><strong>Severity</strong><span class="severity-badge severity-${severityClass}">${severity}</span></div>
-                                <div><strong>Status</strong>${statusLabel}</div>
+                                ${metaHtml}
                             </div>
                             <div class="compact-card-footer">
-                                <span class="incident-mini-note">ID: ${id}</span>
-                                <a href="barangay-map.php?incident=${id}" class="link-small" onclick="event.stopPropagation()">View on Map →</a>
-                                <a href="incident-export.php?incident_id=${id}&autoprint=1" class="link-small" target="_blank" rel="noopener" onclick="event.stopPropagation()">Export PDF →</a>
+                                ${footerHtml}
                             </div>
                         </div>
                     </article>
@@ -192,8 +266,13 @@ if (isset($_SESSION['barangay_id'])) {
             const search = document.getElementById('search-incidents').value.toLowerCase();
             const status = document.getElementById('filter-status').value;
 
+            const searchFields = isAdmin 
+                ? ['title', 'barangay', 'description', 'type_name']
+                : ['title', 'description', 'type_name'];
+
             const filtered = allIncidents.filter((incident) => {
-                const matchesSearch = [incident.title, incident.description, incident.type_name]
+                const matchesSearch = searchFields
+                    .map(field => incident[field])
                     .filter(Boolean)
                     .join(' ')
                     .toLowerCase()
@@ -206,7 +285,7 @@ if (isset($_SESSION['barangay_id'])) {
         }
 
         function viewIncident(incidentId) {
-            window.location.href = `barangay-map.php?incident=${incidentId}`;
+            window.location.href = `${mapPageEndpoint}?incident=${incidentId}`;
         }
 
         document.getElementById('search-incidents').addEventListener('input', filterIncidents);

@@ -75,7 +75,7 @@ $csrfToken = csrf_token();
                     </label>
                     <div class="form-actions">
                         <button type="submit" class="btn-primary">Submit Report</button>
-                        <button type="button" class="btn-secondary" onclick="window.location.href='barangay-dashboard.php'">Cancel</button>
+                        <button type="button" class="btn-secondary" onclick="window.location.href='dashboard.php'">Cancel</button>
                     </div>
                     <p id="form-status" class="muted"></p>
                 </form>
@@ -200,7 +200,7 @@ $csrfToken = csrf_token();
 
                 formStatus.textContent = 'Report submitted successfully!';
                 setTimeout(() => {
-                    window.location.href = 'barangay-dashboard.php';
+                    window.location.href = 'dashboard.php';
                 }, 1500);
             } catch (e) {
                 formStatus.textContent = 'Error: ' + e.message;

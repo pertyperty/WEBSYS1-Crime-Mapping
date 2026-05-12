@@ -1,6 +1,65 @@
 <?php
 require __DIR__ . '/../api/security.php';
+require __DIR__ . '/../api/db.php';
 init_secure_session();
+
+// Determine user role
+$userRole = $_SESSION['role'] ?? null;
+$userId = $_SESSION['user_id'] ?? null;
+$username = $_SESSION['username'] ?? null;
+$barangayId = $_SESSION['barangay_id'] ?? null;
+$barangayName = null;
+
+// Fetch barangay name for barangay users
+if ($userRole === 'barangay' && isset($barangayId)) {
+    $stmt = $pdo->prepare('SELECT barangay_name FROM barangays WHERE barangay_id = :id');
+    $stmt->execute([':id' => $barangayId]);
+    $result = $stmt->fetch();
+    $barangayName = $result ? $result['barangay_name'] : null;
+}
+
+$csrfToken = csrf_token();
+
+// Configuration per role
+$filterHeaderEyebrow = 'Filters';
+$filterHeaderTitle = 'Crime Map';
+$mapSubtitle = 'Interactive map view';
+$filterHint = 'Filters apply automatically as you change them.';
+$isBarangayFiltered = false;
+$showPendingStatus = false;
+$showDetailsHeader = false;
+$validationLabel = 'Is this report accurate?';
+$validationButtons = 'public'; // public, admin, or barangay
+$navbarRole = 'public';
+$showReportCrimeButton = true;
+$showExportPdf = false;
+
+if ($userRole === 'admin') {
+    $filterHeaderEyebrow = 'Admin Control';
+    $filterHeaderTitle = 'Crime Map - Global View';
+    $mapSubtitle = 'Admin global view';
+    $filterHint = 'All incidents visible. Filters apply automatically.';
+    $showPendingStatus = true;
+    $showDetailsHeader = true;
+    $validationLabel = 'Report Actions';
+    $validationButtons = 'admin';
+    $navbarRole = 'admin';
+    $showReportCrimeButton = false;
+    $showExportPdf = true;
+} elseif ($userRole === 'barangay') {
+    $filterHeaderEyebrow = 'Barangay Control';
+    $filterHeaderTitle = 'Crime Map - My Area';
+    $mapSubtitle = 'Barangay area view';
+    $filterHint = 'Showing incidents in your assigned area only. Filters apply automatically.';
+    $isBarangayFiltered = true;
+    $showPendingStatus = true;
+    $showDetailsHeader = false;
+    $validationLabel = 'Verification & Status';
+    $validationButtons = 'barangay';
+    $navbarRole = 'barangay';
+    $showReportCrimeButton = true;
+    $showExportPdf = false;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

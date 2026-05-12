@@ -32,7 +32,7 @@ init_secure_session();
             <section class="hero">
                 <div class="hero-copy">
                     <p class="eyebrow">Live community safety insights</p>
-                    <h1>Track incidents across La Trinidad in real time.</h1>
+                    <h1>Track incidents across La Trinidad</h1>
                     <p class="lead">Monitor crime activity, view hotspots, and stay informed with verified community reports.</p>
                     <div class="hero-actions">
                         <a class="btn-primary" href="map.php">Open Full Map</a>

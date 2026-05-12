@@ -78,10 +78,8 @@ $_SESSION['role'] = $user['role'];
 $_SESSION['barangay_id'] = $user['barangay_id'];
 
 $redirect = 'index.php';
-if ($user['role'] === 'admin') {
-    $redirect = 'admin-dashboard.php';
-} elseif ($user['role'] === 'barangay') {
-    $redirect = 'barangay-dashboard.php';
+if ($user['role'] === 'admin' || $user['role'] === 'barangay') {
+    $redirect = 'dashboard.php';
 }
 
 // If a next param is provided in the payload, honor safe relative redirects

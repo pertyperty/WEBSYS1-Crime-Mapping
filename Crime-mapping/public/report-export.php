@@ -595,7 +595,7 @@ function esc($value): string
                 <div>Report Export</div>
             </div>
             <div class="export-actions">
-                <a class="export-btn" href="<?php echo $viewerRole === 'admin' ? 'admin-dashboard.php' : 'barangay-dashboard.php'; ?>">Back</a>
+                <a class="export-btn" href="dashboard.php">Back</a>
                 <a class="export-btn" href="incidents-export-csv.php">Download CSV</a>
                 <button class="export-btn primary" id="print-btn" type="button">Print / Save as PDF</button>
             </div>
