@@ -1870,3 +1870,217 @@ textarea:focus {
         gap: 8px;
     }
 }
+
+/* Print media optimization for reports and incident exports */
+@media print {
+    * {
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    html, body {
+        background: white;
+        width: 100%;
+        height: auto;
+    }
+
+    body {
+        font-size: 11pt;
+        line-height: 1.5;
+        color: #000;
+    }
+
+    /* Hide interactive elements */
+    .export-topbar,
+    .export-actions,
+    .controls,
+    .hamburger-btn,
+    .map-search-bar,
+    .map-filters,
+    .map-details,
+    #map,
+    .map-canvas,
+    nav,
+    .site-nav,
+    .dashboard-toolbar,
+    .dashboard-actions,
+    .incident-filterbar,
+    footer,
+    .site-footer,
+    button:not(.print-trigger),
+    .btn-primary,
+    .btn-secondary,
+    input[type="button"],
+    input[type="submit"] {
+        display: none !important;
+    }
+
+    /* Page setup */
+    @page {
+        size: letter;
+        margin: 0.75in;
+    }
+
+    /* Reset spacing for print */
+    .page-shell,
+    .export-page,
+    .sheet,
+    .report-content {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+    }
+
+    /* Ensure content is visible */
+    .panel,
+    .card,
+    .sheet,
+    .report-panel-card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+        page-break-inside: avoid;
+        margin-bottom: 12pt;
+    }
+
+    /* Tables */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12pt 0;
+    }
+
+    th, td {
+        border: 1px solid #000;
+        padding: 6pt;
+        text-align: left;
+    }
+
+    th {
+        background: #f0f0f0;
+        font-weight: bold;
+    }
+
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+        page-break-after: avoid;
+        page-break-inside: avoid;
+    }
+
+    h1 { font-size: 18pt; margin: 12pt 0 6pt; }
+    h2 { font-size: 16pt; margin: 10pt 0 5pt; }
+    h3 { font-size: 14pt; margin: 8pt 0 4pt; }
+
+    p { margin: 6pt 0; }
+
+    /* Prevent orphans and widows */
+    p, li { orphans: 3; widows: 3; }
+
+    /* Links */
+    a {
+        color: #000;
+        text-decoration: underline;
+    }
+
+    /* Images */
+    img {
+        max-width: 100%;
+        page-break-inside: avoid;
+    }
+
+    /* Cards and sections */
+    .entry,
+    .business-case,
+    .summary-strip > div,
+    .summary-card,
+    .kpi-card {
+        page-break-inside: avoid;
+        margin-bottom: 12pt;
+    }
+
+    /* Header/footer */
+    .header,
+    .sheet > .header {
+        page-break-inside: avoid;
+        margin-bottom: 12pt;
+    }
+
+    /* Badges and pills */
+    .badge,
+    .tag,
+    .pill {
+        border: 1px solid #000;
+        padding: 2pt 4pt;
+    }
+
+    /* Dashboard adjustments */
+    .dashboard-kpis,
+    .summary-strip {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8pt;
+        margin: 12pt 0;
+    }
+
+    .kpi-card,
+    .summary-chip {
+        border: 1px solid #000 !important;
+        padding: 8pt;
+        background: white !important;
+    }
+
+    .kpi-value,
+    .summary-chip strong {
+        font-size: 16pt;
+        font-weight: bold;
+    }
+
+    /* Report specific */
+    .report-output table {
+        font-size: 10pt;
+    }
+
+    .export-btn, .btn, button {
+        display: none !important;
+    }
+
+    /* Ensure text is black */
+    body, p, span, div, td, th, li {
+        color: #000 !important;
+    }
+
+    /* Margin reset and page breaks */
+    main {
+        padding: 0;
+        margin: 0;
+    }
+
+    /* Break pages appropriately */
+    .page-break {
+        page-break-after: always;
+    }
+
+    /* Avoid breaking inside key elements */
+    .entry,
+    .business-case,
+    .chronology-item,
+    .detail-row {
+        page-break-inside: avoid;
+    }
+
+    /* Print footer */
+    .footer {
+        margin-top: 24pt;
+        padding-top: 12pt;
+        border-top: 2pt solid #000;
+        font-size: 9pt;
+        text-align: center;
+    }
+
+    /* Ensure proper text size for readability */
+    body {
+        font-family: 'Times New Roman', 'Noto Serif', serif;
+        font-size: 12pt;
+    }
+}
