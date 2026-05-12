@@ -59,6 +59,7 @@ if (!isset($payload['incident_id']) || !isset($payload['new_status'])) {
 $incidentId = (int) $payload['incident_id'];
 $newStatus = trim($payload['new_status']);
 $remarks = isset($payload['remarks']) ? trim($payload['remarks']) : '';
+$makePublic = !empty($payload['make_public']);
 
 // Validate status value
 $validStatuses = ['pending', 'under_investigation', 'action_taken', 'resolved', 'dismissed'];
@@ -96,11 +97,13 @@ if ($userRole !== 'admin' && ($userRole !== 'barangay' || $userBarangayId != $in
 // Update incident status
 $updateStmt = $pdo->prepare('
     UPDATE incidents
-    SET status = :status
+    SET status = :status,
+        is_public = CASE WHEN :make_public = 1 THEN 1 ELSE is_public END
     WHERE incident_id = :incident_id
 ');
 $updateStmt->execute([
     ':status' => $newStatus,
+    ':make_public' => $makePublic ? 1 : 0,
     ':incident_id' => $incidentId
 ]);
 

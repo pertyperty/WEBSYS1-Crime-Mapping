@@ -73,6 +73,11 @@ $csrfToken = csrf_token();
                             <option value="high">High</option>
                         </select>
                     </label>
+                    <label>
+                        <span>Evidence Images</span>
+                        <input type="file" id="incident-images" multiple accept="image/*" />
+                        <small class="muted">Upload one or more images as evidence. Supported formats: JPG, PNG, GIF, WebP</small>
+                    </label>
                     <div class="form-actions">
                         <button type="submit" class="btn-primary">Submit Report</button>
                         <button type="button" class="btn-secondary" onclick="window.location.href='dashboard.php'">Cancel</button>
@@ -196,6 +201,33 @@ $csrfToken = csrf_token();
                 if (!result.ok) {
                     formStatus.textContent = result.error || 'Submission failed.';
                     return;
+                }
+
+                // Upload images if any were selected
+                const imageInput = document.getElementById('incident-images');
+                if (imageInput && imageInput.files && imageInput.files.length > 0) {
+                    const incidentId = result.data?.incident_id;
+                    if (incidentId) {
+                        formStatus.textContent = 'Uploading images...';
+                        for (const file of imageInput.files) {
+                            const formData = new FormData();
+                            formData.append('incident_id', incidentId);
+                            formData.append('image', file);
+
+                            const uploadResp = await fetch(`${apiBase}/upload-image.php`, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-Token': csrfToken
+                                },
+                                body: formData
+                            });
+
+                            const uploadResult = await uploadResp.json();
+                            if (!uploadResult.ok) {
+                                console.warn('Image upload failed:', uploadResult.error);
+                            }
+                        }
+                    }
                 }
 
                 formStatus.textContent = 'Report submitted successfully!';

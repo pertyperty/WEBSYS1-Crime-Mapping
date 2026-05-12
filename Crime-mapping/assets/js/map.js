@@ -43,49 +43,7 @@ try {
 }
 
 const markersLayer = L.layerGroup().addTo(map);
-// Restrict map to La Trinidad bounds and animate back if user pans out
-try {
-    const laTrinidadBounds = L.latLngBounds([
-        [16.4150, 120.5600], // SW
-        [16.4800, 120.6050]  // NE
-    ]);
-    const laTrinidadFocus = laTrinidadBounds.getCenter();
-    const minimumLocalZoom = 13;
-
-    // Apply as max bounds with a small padding so users can see edge but not escape
-    if (map && laTrinidadBounds.isValid()) {
-        map.setMaxBounds(laTrinidadBounds.pad(0.02));
-
-        function ensureInsideBounds() {
-            const center = map.getCenter();
-            const zoom = map.getZoom();
-
-            if (zoom < minimumLocalZoom) {
-                try {
-                    map.flyTo([laTrinidadFocus.lat, laTrinidadFocus.lng], minimumLocalZoom, { duration: 0.9, easeLinearity: 0.25 });
-                } catch (e) {
-                    try { map.setView([laTrinidadFocus.lat, laTrinidadFocus.lng], minimumLocalZoom); } catch(ignore) {}
-                }
-                return;
-            }
-
-            if (!laTrinidadBounds.contains(center)) {
-                const target = laTrinidadFocus;
-                try {
-                    map.flyTo([target.lat, target.lng], Math.max(map.getZoom(), 13), { duration: 0.9, easeLinearity: 0.25 });
-                } catch (e) {
-                    try { map.setView([target.lat, target.lng]); } catch(ignore) {}
-                }
-            }
-        }
-
-        map.on('moveend', ensureInsideBounds);
-        map.on('zoomend', ensureInsideBounds);
-        map.on('dragend', ensureInsideBounds);
-    }
-} catch (e) {
-    console.error('Failed to set map bounds for La Trinidad:', e);
-}
+// Keep the map free to pan/zoom normally.
 const typeFilters = document.getElementById("type-filters");
 const barangayFilter = document.getElementById("barangay-filter");
 const searchInput = document.getElementById("search-input");
@@ -95,6 +53,8 @@ const statusFilter = document.getElementById("status-filter");
 const detailsPanel = document.getElementById("details-panel");
 const detailsTitle = document.getElementById("details-title");
 const detailsBody = document.getElementById("details-body");
+const sidebarGallery = document.getElementById("sidebar-gallery");
+const sidebarImageCarousel = document.getElementById("sidebar-image-carousel");
 const markerStyleButtons = document.querySelectorAll(".toggle-btn");
 const reportPanel = document.getElementById("report-panel");
 const resetButton = document.getElementById("reset-filters");
@@ -239,6 +199,8 @@ function renderIncidentDetailsHtml(incident) {
     const safeTypeName = escapeHtml(incident.type_name || incident.type || "");
     const safeReportedBy = escapeHtml(incident.reported_by);
     const safeDescription = escapeHtml(incident.description);
+    const safeVerification = escapeHtml(incident.is_public ? "Verified / Public" : "Not yet verified");
+    const safeSource = escapeHtml(formatStatus(incident.source || "reported"));
 
     return `
         <div>
@@ -248,6 +210,8 @@ function renderIncidentDetailsHtml(incident) {
             ${incident.severity ? `<p><strong>Severity:</strong> ${safeSeverity}</p>` : ""}
             ${safeTypeName ? `<p><strong>Type:</strong> ${safeTypeName}</p>` : ""}
             ${incident.reported_by ? `<p><strong>Reported by:</strong> ${safeReportedBy}</p>` : ""}
+            <p><strong>Verification:</strong> ${safeVerification}</p>
+            <p><strong>Source:</strong> ${safeSource}</p>
             <p class="muted" style="margin-top: 12px;">${safeDescription}</p>
         </div>
     `;
@@ -294,6 +258,7 @@ function openDetailSidebar(incident) {
     if (filtersPanel) filtersPanel.classList.remove("is-open");
 
     currentIncidentId = incident.id;
+    currentIncidentData = incident;
     updateExportLink(currentIncidentId);
 
     if (detailsTitle) detailsTitle.textContent = incident.title || "Incident";
@@ -306,7 +271,8 @@ function openDetailSidebar(incident) {
     loadIncidentDetail(incident.id, {
         titleElement: detailsTitle,
         infoElement: detailsBody,
-        includeImages: false
+        includeImages: true,
+        renderSidebar: true
     });
 }
 
@@ -315,6 +281,7 @@ let activeTypes = new Set();
 let reportLatLng = null;
 let reportTypes = [];
 let currentIncidentId = null;
+let currentIncidentData = null;
 let filterTimer = null;
 let tempMarker = null;
 let locationResolveTimer = null;
@@ -573,7 +540,8 @@ async function loadIncidentDetail(incidentId, options = {}) {
     const {
         titleElement = modalTitle,
         infoElement = detailInfo,
-        includeImages = true
+        includeImages = true,
+        renderSidebar = false
     } = options;
 
     try {
@@ -588,6 +556,11 @@ async function loadIncidentDetail(incidentId, options = {}) {
         }
 
         const incident = data.incident;
+        incident.images = data.images || [];
+        incident.image_count = incident.images.length;
+        if (incident.id == currentIncidentId) {
+            currentIncidentData = incident;
+        }
         if (titleElement) {
             titleElement.textContent = incident.title;
         }
@@ -597,7 +570,11 @@ async function loadIncidentDetail(incidentId, options = {}) {
         }
 
         if (includeImages) {
-            renderImages(data.images);
+            if (renderSidebar) {
+                renderSidebarImages(data.images);
+            } else {
+                renderImages(data.images);
+            }
         }
 
         return data;
@@ -626,6 +603,27 @@ function renderImages(images) {
     });
 }
 
+function renderSidebarImages(images) {
+    if (!sidebarImageCarousel) return;
+    
+    sidebarImageCarousel.innerHTML = "";
+    if (!images || images.length === 0) {
+        if (sidebarGallery) sidebarGallery.style.display = "none";
+        return;
+    }
+
+    images.forEach((img) => {
+        const imgElement = document.createElement("img");
+        imgElement.src = "../" + img.file_path;
+        imgElement.alt = "Evidence";
+        imgElement.className = "image-thumbnail";
+        imgElement.addEventListener("click", () => viewImageFull(img.file_path));
+        sidebarImageCarousel.appendChild(imgElement);
+    });
+    
+    if (sidebarGallery) sidebarGallery.style.display = "block";
+}
+
 function viewImageFull(filePath) {
     window.open("../" + filePath, "_blank");
 }
@@ -651,6 +649,25 @@ function closeDetailModal() {
     currentIncidentId = null;
     updateExportLink(null);
     uploadStatus.textContent = "";
+}
+
+async function refreshVisibleIncidentDetails() {
+    if (!currentIncidentId) {
+        return null;
+    }
+
+    const refreshed = await loadIncidentDetail(currentIncidentId, {
+        titleElement: detailsTitle,
+        infoElement: detailsBody,
+        includeImages: true,
+        renderSidebar: true
+    });
+
+    if (refreshed && refreshed.incident) {
+        currentIncidentData = refreshed.incident;
+    }
+
+    return refreshed;
 }
 
 function openReportPanel() {
@@ -955,7 +972,8 @@ async function updateIncidentStatus(newStatus, remarks = '') {
             body: JSON.stringify({
                 incident_id: currentIncidentId,
                 new_status: newStatus,
-                remarks: remarks
+                remarks: remarks,
+                make_public: true
             })
         });
 
@@ -969,9 +987,27 @@ async function updateIncidentStatus(newStatus, remarks = '') {
         }
 
         if (data.ok) {
-            // refresh markers and detail
-            await loadIncidents();
-            await loadIncidentDetail(currentIncidentId);
+            if (currentIncidentData) {
+                currentIncidentData.status = newStatus;
+                currentIncidentData.is_public = 1;
+                currentIncidentData.images = currentIncidentData.images || [];
+                currentIncidentData.image_count = currentIncidentData.images.length;
+                if (detailsTitle) {
+                    detailsTitle.textContent = currentIncidentData.title || 'Incident';
+                }
+                if (detailsBody) {
+                    detailsBody.innerHTML = renderIncidentDetailsHtml(currentIncidentData);
+                }
+            }
+
+            const updatedIncident = incidents.find((incident) => incident.id == currentIncidentId);
+            if (updatedIncident) {
+                updatedIncident.status = newStatus;
+                updatedIncident.is_public = 1;
+            }
+
+            renderMarkers();
+            loadValidationCounts();
             if (uploadStatus) uploadStatus.textContent = 'Status updated.';
         } else {
             console.error('Status update failed', data.error, data.details || '');
@@ -990,7 +1026,13 @@ verifyBtnEl?.addEventListener('click', () => {
 });
 
 escalateBtnEl?.addEventListener('click', () => {
-    updateIncidentStatus('action_taken', 'Escalated via UI');
+    const currentStatus = currentIncidentData?.status || 'pending';
+    const nextStatus = currentStatus === 'pending'
+        ? 'under_investigation'
+        : currentStatus === 'under_investigation'
+            ? 'resolved'
+            : 'resolved';
+    updateIncidentStatus(nextStatus, 'Escalated via UI');
 });
 
 if (searchInput) searchInput.addEventListener("input", scheduleLoadIncidents);
@@ -1277,6 +1319,34 @@ if (reportForm) {
             if (!result.ok) {
                 if (reportStatus) reportStatus.textContent = result.error || "Submission failed.";
                 return;
+            }
+
+            // Upload images if any were selected
+            const reportImagesInput = document.getElementById('report-images');
+            if (reportImagesInput && reportImagesInput.files && reportImagesInput.files.length > 0) {
+                const incidentId = result.data?.incident_id;
+                if (incidentId) {
+                    if (reportStatus) reportStatus.textContent = "Uploading images...";
+                    for (const file of reportImagesInput.files) {
+                        const formData = new FormData();
+                        formData.append('incident_id', incidentId);
+                        formData.append('image', file);
+
+                        try {
+                            const uploadResp = await fetch(`${apiBase}/upload-image.php`, {
+                                method: 'POST',
+                                headers: csrfHeaders({}),
+                                body: formData
+                            });
+                            const uploadResult = await uploadResp.json();
+                            if (!uploadResult.ok) {
+                                console.warn('Image upload failed:', uploadResult.error);
+                            }
+                        } catch (e) {
+                            console.warn('Image upload error:', e);
+                        }
+                    }
+                }
             }
 
             if (reportStatus) {

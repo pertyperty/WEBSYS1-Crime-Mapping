@@ -364,7 +364,8 @@ async function loadRecentCrimeImages(incidents) {
                 slides.push({
                     image: normalizeImageUrl(firstImage.file_path),
                     title: incident.title || payload.incident?.title || "Recent incident",
-                    subtitle: `${incident.barangay || payload.incident?.barangay || "Unknown barangay"} • ${incident.date || payload.incident?.occurred_at || "Recent"}`
+                    subtitle: `${incident.barangay || payload.incident?.barangay || "Unknown barangay"} • ${incident.date || payload.incident?.occurred_at || "Recent"} • ${String(payload.incident?.status || incident.status || "pending").replace(/_/g, " ")}`,
+                    description: payload.incident?.description || incident.description || "No description was provided."
                 });
             }
         } catch (error) {

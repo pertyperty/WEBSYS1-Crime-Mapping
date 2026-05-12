@@ -67,6 +67,7 @@ $showKpiFields = $isAdmin
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../assets/css/site.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 </head>
 <body>
     <div class="page-shell">
@@ -97,12 +98,56 @@ $showKpiFields = $isAdmin
                     <div class="kpi-card"><div class="kpi-label">Resolved cases</div><div class="kpi-value" id="kpi-resolved">--</div></div>
                     <div class="kpi-card"><div class="kpi-label">High severity alerts</div><div class="kpi-value" id="kpi-high-severity">--</div></div>
                 </section>
+                
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Analytics Overview</h2>
+                    </div>
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h3>Crime Types Distribution</h3>
+                            <canvas id="crime-types-chart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Status Distribution</h3>
+                            <canvas id="status-chart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Severity Distribution</h3>
+                            <canvas id="severity-chart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Incidents by Barangay</h3>
+                            <canvas id="barangay-chart"></canvas>
+                        </div>
+                    </div>
+                </section>
             <?php else: ?>
                 <section class="summary-strip">
                     <div class="summary-chip"><span>Pending reports</span><strong id="kpi-pending">--</strong></div>
                     <div class="summary-chip"><span>Active cases</span><strong id="kpi-active">--</strong></div>
                     <div class="summary-chip"><span>Resolved this month</span><strong id="kpi-resolved">--</strong></div>
                     <div class="summary-chip"><span>High risk areas</span><strong id="kpi-high-risk">--</strong></div>
+                </section>
+                
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Analytics Overview</h2>
+                    </div>
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h3>Crime Types Distribution</h3>
+                            <canvas id="crime-types-chart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Status Distribution</h3>
+                            <canvas id="status-chart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Severity Distribution</h3>
+                            <canvas id="severity-chart"></canvas>
+                        </div>
+                    </div>
                 </section>
             <?php endif; ?>
             <br>
@@ -385,6 +430,188 @@ $showKpiFields = $isAdmin
             });
         });
 
+        // ── Analytics Charts ───────────────────────────────────
+        const chartColors = {
+            violent: '#f43f5e',
+            property: '#facc15',
+            drug: '#a855f7',
+            traffic: '#22d3ee',
+            cybercrime: '#38bdf8',
+            white_collar: '#f97316',
+            public_order: '#34d399',
+            status_offense: '#fb7185',
+            pending: '#f59e0b',
+            under_investigation: '#3b82f6',
+            action_taken: '#8b5cf6',
+            resolved: '#16a34a',
+            dismissed: '#ef4444',
+            high: '#dc2626',
+            medium: '#f97316',
+            low: '#4ade80'
+        };
+
+        let crimeTypesChart = null;
+        let statusChart = null;
+        let severityChart = null;
+        let barangayChart = null;
+
+        async function loadAnalytics() {
+            try {
+                const resp = await fetch(`${apiBase}/analytics.php`);
+                const result = await resp.json();
+                if (!result.ok) {
+                    console.error('Failed to load analytics:', result.error);
+                    return;
+                }
+
+                const data = result.data;
+
+                // Crime Types Chart
+                const crimeTypesCtx = document.getElementById('crime-types-chart');
+                if (crimeTypesCtx && data.crime_types && data.crime_types.length > 0) {
+                    if (crimeTypesChart) crimeTypesChart.destroy();
+                    crimeTypesChart = new Chart(crimeTypesCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: data.crime_types.map(ct => ct.category.replace(/_/g, ' ')),
+                            datasets: [{
+                                data: data.crime_types.map(ct => ct.count),
+                                backgroundColor: data.crime_types.map(ct => chartColors[ct.category] || '#6366f1'),
+                                borderColor: '#ffffff',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        font: { family: 'IBM Plex Sans, sans-serif' },
+                                        padding: 12,
+                                        usePointStyle: true
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Status Chart
+                const statusCtx = document.getElementById('status-chart');
+                if (statusCtx && data.status && data.status.length > 0) {
+                    if (statusChart) statusChart.destroy();
+                    statusChart = new Chart(statusCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: data.status.map(s => s.status.replace(/_/g, ' ')),
+                            datasets: [{
+                                data: data.status.map(s => s.count),
+                                backgroundColor: data.status.map(s => chartColors[s.status] || '#94a3b8'),
+                                borderColor: '#ffffff',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        font: { family: 'IBM Plex Sans, sans-serif' },
+                                        padding: 12,
+                                        usePointStyle: true
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Severity Chart
+                const severityCtx = document.getElementById('severity-chart');
+                if (severityCtx && data.severity && data.severity.length > 0) {
+                    if (severityChart) severityChart.destroy();
+                    severityChart = new Chart(severityCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: data.severity.map(s => s.severity.charAt(0).toUpperCase() + s.severity.slice(1)),
+                            datasets: [{
+                                data: data.severity.map(s => s.count),
+                                backgroundColor: data.severity.map(s => chartColors[s.severity] || '#6366f1'),
+                                borderColor: '#ffffff',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        font: { family: 'IBM Plex Sans, sans-serif' },
+                                        padding: 12,
+                                        usePointStyle: true
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Barangay Chart (admin only)
+                if (isAdmin) {
+                    const barangayCtx = document.getElementById('barangay-chart');
+                    if (barangayCtx && data.barangays && data.barangays.length > 0) {
+                        if (barangayChart) barangayChart.destroy();
+                        barangayChart = new Chart(barangayCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: data.barangays.map(b => b.barangay_name),
+                                datasets: [{
+                                    label: 'Incidents',
+                                    data: data.barangays.map(b => b.count),
+                                    backgroundColor: '#3b82f6',
+                                    borderColor: '#1e40af',
+                                    borderWidth: 1,
+                                    borderRadius: 6
+                                }]
+                            },
+                            options: {
+                                indexAxis: data.barangays.length > 5 ? 'y' : 'x',
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: {
+                                    legend: {
+                                        display: true,
+                                        labels: {
+                                            font: { family: 'IBM Plex Sans, sans-serif' },
+                                            padding: 12
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        beginAtZero: true,
+                                        grid: { color: 'rgba(15,23,42,0.1)' }
+                                    },
+                                    y: {
+                                        grid: { color: 'rgba(15,23,42,0.1)' }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        }
+
+        loadAnalytics();
         loadDashboard();
     </script>
 </body>

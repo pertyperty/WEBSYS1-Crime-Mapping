@@ -157,9 +157,21 @@ if ($userRole === 'admin') {
         </main>
 
         <aside class="map-details" id="details-panel">
+            <div class="details-header">
+                <h2 id="details-title">Incident Details</h2>
+            </div>
+
+            <div class="detail-gallery" id="sidebar-gallery" style="display: none;">
+                <div class="gallery-label">Evidence Images</div>
+                <div class="image-carousel" id="sidebar-image-carousel">
+                    <p class="muted">No images uploaded yet.</p>
+                </div>
+            </div>
+
             <div class="details-body" id="details-body">
                 <p class="muted">Click a marker to view the full report.</p>
             </div>
+
             <div class="validation-panel">
                 <div class="validation-label">Is this report accurate?</div>
                 <div class="validation-buttons">
@@ -184,8 +196,8 @@ if ($userRole === 'admin') {
                     <button type="button" class="btn-primary" id="report-crime">Report a crime</button>
                 <?php endif; ?>
                 <?php if (in_array($userRole, ['admin', 'barangay'], true)): ?>
-                    <button type="button" class="btn-secondary hidden" id="verify-btn">Verify</button>
-                    <button type="button" class="btn-secondary hidden" id="escalate-btn">Escalate</button>
+                    <button type="button" class="btn-secondary" id="verify-btn">Verify</button>
+                    <button type="button" class="btn-secondary" id="escalate-btn">Escalate</button>
                 <?php endif; ?>
             </div>
 
@@ -236,6 +248,11 @@ if ($userRole === 'admin') {
                             <option value="high">High</option>
                         </select>
                     </label>
+                    <label>
+                        <span>Evidence Images</span>
+                        <input id="report-images" type="file" multiple accept="image/*" />
+                        <small class="muted">Upload one or more images as evidence. Supported formats: JPG, PNG, GIF, WebP</small>
+                    </label>
                     <div class="report-actions">
                         <button class="btn-primary" type="submit">Submit report</button>
                         <button class="btn-secondary" id="report-cancel" type="button">Cancel</button>
@@ -273,12 +290,6 @@ if ($userRole === 'admin') {
                         <p class="muted" id="upload-status"></p>
                     </div>
 
-                    <div class="detail-modal-actions">
-                        <?php if (in_array($userRole, ['admin', 'barangay'], true)): ?>
-                            <button type="button" class="btn-secondary" id="verify-btn">Verify</button>
-                            <button type="button" class="btn-secondary" id="escalate-btn">Escalate</button>
-                        <?php endif; ?>
-                    </div>
                 </div>
             </div>
         </aside>

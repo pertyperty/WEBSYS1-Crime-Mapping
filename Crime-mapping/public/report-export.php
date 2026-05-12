@@ -41,27 +41,27 @@ function esc($value): string
     <style>
         :root {
             --paper: #ffffff;
-            --bg: #eff3f8;
-            --ink: #152033;
-            --muted: #5e6c84;
-            --line: #d2dbe6;
-            --accent: #12357a;
-            --soft: rgba(18, 53, 122, 0.08);
-            --shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+            --bg: #ffffff;
+            --ink: #000000;
+            --muted: #666666;
+            --line: #000000;
+            --accent: #000000;
+            --soft: #f0f0f0;
+            --shadow: none;
         }
 
         * { box-sizing: border-box; }
         body {
             margin: 0;
-            font-family: 'IBM Plex Sans', sans-serif;
+            font-family: 'Times New Roman', 'Noto Serif', serif;
             color: var(--ink);
-            background: linear-gradient(180deg, #f7f9fc 0%, var(--bg) 100%);
+            background: var(--bg);
         }
 
         .export-page {
-            max-width: 1120px;
+            max-width: 8.5in;
             margin: 0 auto;
-            padding: 24px;
+            padding: 0.75in;
         }
 
         .export-topbar {
@@ -78,7 +78,7 @@ function esc($value): string
             align-items: center;
             gap: 12px;
             font-family: 'Space Grotesk', sans-serif;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
         }
 
@@ -117,73 +117,76 @@ function esc($value): string
         .sheet {
             background: var(--paper);
             border: 1px solid var(--line);
-            box-shadow: var(--shadow);
-            padding: 28px 32px 34px;
+            box-shadow: none;
+            padding: 0.75in;
+            border-radius: 0;
         }
 
         .header {
-            display: grid;
-            grid-template-columns: 1.35fr 0.95fr;
-            gap: 24px;
-            align-items: start;
+            text-align: center;
+            border-bottom: 2pt solid var(--line);
+            padding-bottom: 0.3in;
+            margin-bottom: 0.3in;
         }
 
         .header-left {
             display: flex;
             gap: 16px;
-            align-items: flex-start;
+            align-items: center;
+            justify-content: center;
         }
 
         .header-left img {
-            width: 82px;
-            height: 82px;
-            border-radius: 18px;
+            width: 0.6in;
+            height: 0.6in;
+            border-radius: 8px;
             object-fit: cover;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
         }
 
         .header-left h1 {
             margin: 0;
             font-family: 'Space Grotesk', sans-serif;
-            font-size: 30px;
+            font-size: 13pt;
             line-height: 1.05;
-            letter-spacing: -0.03em;
+            letter-spacing: 0.1em;
         }
 
         .header-left p {
-            margin: 6px 0 0;
+            margin: 0.05in 0 0;
             color: var(--muted);
+            font-size: 11pt;
         }
 
         .header-right {
-            text-align: right;
+            text-align: center;
+            margin-top: 0.08in;
         }
 
         .header-right .main {
             font-family: 'Space Grotesk', sans-serif;
-            font-size: 32px;
+            font-size: 11pt;
             font-weight: 700;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.1em;
         }
 
         .header-right .sub {
-            margin-top: 6px;
-            font-style: italic;
+            margin-top: 0.05in;
+            font-style: normal;
             color: var(--muted);
-            font-size: 14px;
+            font-size: 11pt;
         }
 
         .rule {
-            height: 4px;
-            background: var(--accent);
-            margin: 18px 0 16px;
+            height: 0;
+            border-top: 1pt solid var(--line);
+            margin: 0.2in 0 0.18in;
         }
 
         .meta-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 18px;
-            margin-bottom: 22px;
+            margin-bottom: 0.25in;
             align-items: end;
         }
 
@@ -222,7 +225,7 @@ function esc($value): string
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
-            margin-bottom: 16px;
+            margin-bottom: 0.2in;
         }
 
         .sr-only {
@@ -250,14 +253,14 @@ function esc($value): string
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 12px;
-            margin: 16px 0 20px;
+            margin: 0.15in 0 0.22in;
         }
 
         .summary-card {
             border: 1px solid var(--line);
-            border-radius: 16px;
-            padding: 14px;
-            background: #fbfcfe;
+            border-radius: 0;
+            padding: 0.12in 0.1in;
+            background: #fff;
         }
 
         .summary-card .label {
@@ -270,7 +273,7 @@ function esc($value): string
 
         .summary-card .value {
             font-family: 'Space Grotesk', sans-serif;
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 700;
         }
 
@@ -283,6 +286,25 @@ function esc($value): string
             margin: 0 0 10px;
             font-family: 'Space Grotesk', sans-serif;
             font-size: 18px;
+        }
+
+        .section {
+            margin-bottom: 0.28in;
+            break-inside: avoid;
+        }
+
+        .section-header {
+            font-weight: bold;
+            font-size: 11pt;
+            background-color: #e8e8e8;
+            padding: 0.08in 0.1in;
+            border-left: 3pt solid #000;
+            margin-bottom: 0.1in;
+            text-transform: uppercase;
+        }
+
+        .section-content {
+            margin-left: 0.15in;
         }
 
         .summary-table {
@@ -305,6 +327,15 @@ function esc($value): string
             text-transform: uppercase;
             letter-spacing: 0.06em;
             font-size: 11px;
+        }
+
+        .report-number {
+            text-align: center;
+            font-weight: bold;
+            font-size: 11pt;
+            margin-bottom: 0.2in;
+            border-bottom: 1pt solid #000;
+            padding-bottom: 0.1in;
         }
 
         .entry {
@@ -388,15 +419,15 @@ function esc($value): string
 
         .business-case {
             border: 1px solid var(--line);
-            border-radius: 18px;
-            padding: 18px;
-            background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+            border-radius: 0;
+            padding: 0;
+            background: #fff;
             break-inside: avoid;
         }
 
         .case-kicker {
             margin: 0 0 6px;
-            color: var(--accent);
+            color: var(--ink);
             font-size: 11px;
             font-weight: 700;
             letter-spacing: 0.14em;
@@ -427,7 +458,7 @@ function esc($value): string
 
         .case-section {
             border: 1px solid var(--line);
-            border-radius: 16px;
+            border-radius: 0;
             padding: 16px;
             background: #fff;
         }
@@ -537,11 +568,12 @@ function esc($value): string
 
         .tag {
             padding: 6px 10px;
-            border-radius: 999px;
-            background: #edf2ff;
-            color: #223f8f;
+            border-radius: 0;
+            background: #f0f0f0;
+            color: #000;
             font-size: 12px;
             font-weight: 700;
+            border: 1px solid #000;
         }
 
         .loading {

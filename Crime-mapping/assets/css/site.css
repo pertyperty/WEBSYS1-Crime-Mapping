@@ -814,6 +814,28 @@ textarea:focus {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.panel-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    font-family: var(--font-display);
+}
+
+.panel-note {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+}
+
+.panel-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 8px;
 }
 
 .feed,
@@ -894,6 +916,17 @@ textarea:focus {
     color: var(--muted);
 }
 
+.form-grid label span {
+    font-weight: 500;
+    color: var(--text);
+}
+
+.form-grid label span::after {
+    content: attr(data-required);
+    margin-left: 2px;
+    color: var(--danger);
+}
+
 .form-grid input,
 .form-grid select {
     padding: 12px 14px;
@@ -901,6 +934,21 @@ textarea:focus {
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-grid input:hover,
+.form-grid select:hover {
+    border-color: rgba(37, 99, 235, 0.3);
+}
+
+.form-grid input:focus,
+.form-grid select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .form-grid textarea {
@@ -910,6 +958,26 @@ textarea:focus {
     background: var(--surface);
     color: var(--text);
     resize: vertical;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-grid textarea:hover {
+    border-color: rgba(37, 99, 235, 0.3);
+}
+
+.form-grid textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-grid small {
+    display: block;
+    font-size: 12px;
+    margin-top: -4px;
 }
 
 .page-map {
@@ -2183,4 +2251,109 @@ textarea:focus {
         font-family: 'Times New Roman', 'Noto Serif', serif;
         font-size: 12pt;
     }
+}
+
+/* Charts and Analytics Styling */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.chart-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+}
+
+.chart-container h3 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.chart-container canvas {
+    max-height: 300px;
+}
+
+/* Badge and Status Styling */
+.status-badge,
+.severity-badge,
+.badge,
+.pill,
+.tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: capitalize;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+
+/* Status Badge Colors */
+.status-badge {
+    background: var(--surface-soft);
+    color: var(--text);
+}
+
+.status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fcd34d;
+}
+
+.status-badge.under_investigation,
+.status-badge.under-investigation {
+    background: #dbeafe;
+    color: #1e40af;
+    border-color: #93c5fd;
+}
+
+.status-badge.action_taken,
+.status-badge.action-taken {
+    background: #e9d5ff;
+    color: #6b21a8;
+    border-color: #d8b4fe;
+}
+
+.status-badge.resolved {
+    background: #dcfce7;
+    color: #15803d;
+    border-color: #86efac;
+}
+
+.status-badge.dismissed {
+    background: #fee2e2;
+    color: #7f1d1d;
+    border-color: #fca5a5;
+}
+
+/* Severity Badge Colors */
+.severity-badge {
+    background: var(--surface-soft);
+    color: var(--text);
+}
+
+.severity-badge.high {
+    background: #fee2e2;
+    color: #7f1d1d;
+    border-color: #fca5a5;
+}
+
+.severity-badge.medium {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fcd34d;
+}
+
+.severity-badge.low {
+    background: #dcfce7;
+    color: #15803d;
+    border-color: #86efac;
 }
