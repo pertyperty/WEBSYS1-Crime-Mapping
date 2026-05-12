@@ -1446,13 +1446,113 @@ textarea:focus {
     flex-wrap: wrap;
 }
 
-.dashboard-toolbar select,
-.dashboard-toolbar input {
-    padding: 10px 12px;
+/* Custom date trigger button */
+.date-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
     border-radius: 999px;
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.date-trigger:hover {
+    border-color: rgba(37, 99, 235, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Date picker modal */
+.datepicker-modal {
+    width: 320px;
+    max-width: 95vw;
+}
+
+.datepicker-body {
+    padding: 20px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.datepicker-year-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.dp-year-label {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 20px;
+}
+
+.dp-nav-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+}
+
+.dp-nav-btn:hover {
+    background: var(--surface-soft);
+}
+
+.datepicker-months {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.dp-month-btn {
+    padding: 10px 6px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface-light);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.dp-month-btn:hover {
+    border-color: rgba(37, 99, 235, 0.35);
+    background: var(--surface-soft);
+}
+
+.dp-month-active {
+    background: var(--accent) !important;
+    color: #ffffff !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+}
+
+/* Report button active state — only ONE should glow at a time */
+.dashboard-toolbar [data-report].is-active {
+    background: var(--accent) !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3) !important;
+}
+
+.dashboard-toolbar [data-report]:active {
+    transform: scale(0.97);
 }
 
 .summary-strip {
