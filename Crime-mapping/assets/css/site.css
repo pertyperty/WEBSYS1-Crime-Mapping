@@ -1018,7 +1018,7 @@ textarea:focus {
     position: absolute;
     top: 118px;
     z-index: 1400;
-    width: 320px;
+    width: 420px;
     max-height: calc(100vh - 96px);
     overflow: auto;
     border-radius: 12px;
