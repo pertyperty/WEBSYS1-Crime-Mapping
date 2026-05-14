@@ -44,7 +44,7 @@ if ($check->fetch()) {
     exit;
 }
 
-// Build INSERT dynamically to include address column only if it exists in the users table
+
 $columns = ['username', 'email', 'contact', 'password_hash', 'role'];
 $placeholders = [':username', ':email', ':contact', ':password_hash', ':role'];
 $params = [
@@ -66,7 +66,7 @@ if ($address !== '') {
             $params[':address'] = $address;
         }
     } catch (Exception $e) {
-        // ignore and continue without address column
+        
     }
 }
 
@@ -79,7 +79,7 @@ $_SESSION['username'] = $username;
 $_SESSION['role'] = 'registered';
 $_SESSION['barangay_id'] = null;
 
-// Determine safe redirect: honor next if it's a relative path (no scheme)
+
 $redirect = 'index.php';
 if (is_string($next) && $next) {
     if (strpos($next, '://') === false && strpos($next, '//') !== 0) {

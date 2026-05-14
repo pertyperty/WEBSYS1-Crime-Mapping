@@ -24,7 +24,7 @@ $incidents = incident_fetch_many($pdo, $viewer, $filters, [
     'include_images' => false,
 ]);
 
-// Generate filename with timestamp and applied filters
+
 $filterSuffix = '';
 if (!empty($filters['status'])) {
     $filterSuffix .= '-' . $filters['status'];
@@ -49,10 +49,10 @@ if ($out === false) {
     exit;
 }
 
-// Add BOM for Excel UTF-8 compatibility
+
 fwrite($out, "\xEF\xBB\xBF");
 
-// CSV Headers
+
 $headers = [
     'Incident ID',
     'Category',
@@ -73,7 +73,7 @@ $headers = [
 
 fputcsv($out, $headers);
 
-// CSV Data Rows
+
 foreach ($incidents as $incident) {
     $visibility = ($incident['is_public'] ?? false) ? 'Public' : 'Private';
     $source = ucfirst($incident['source'] ?? 'unknown');

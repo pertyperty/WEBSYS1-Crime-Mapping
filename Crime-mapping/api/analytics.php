@@ -8,7 +8,7 @@ $viewerRole = $_SESSION['role'] ?? null;
 $viewerUserId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
 $viewerBarangayId = isset($_SESSION['barangay_id']) ? (int) $_SESSION['barangay_id'] : null;
 
-// Validate role
+
 if (!in_array($viewerRole, ['admin', 'barangay'], true)) {
     http_response_code(403);
     echo json_encode(['ok' => false, 'error' => 'Access denied.']);
@@ -25,7 +25,7 @@ if ($viewerRole === 'admin') {
     $visibilityParams[':viewer_barangay_id'] = $viewerBarangayId;
 }
 
-// Crime types distribution
+
 $crimeTypesStmt = $pdo->prepare("
     SELECT ct.category, ct.type_name, COUNT(*) AS count
     FROM incidents i
@@ -37,7 +37,7 @@ $crimeTypesStmt = $pdo->prepare("
 $crimeTypesStmt->execute($visibilityParams);
 $crimeTypesData = $crimeTypesStmt->fetchAll();
 
-// Status distribution
+
 $statusStmt = $pdo->prepare("
     SELECT status, COUNT(*) AS count
     FROM incidents i
@@ -48,7 +48,7 @@ $statusStmt = $pdo->prepare("
 $statusStmt->execute($visibilityParams);
 $statusData = $statusStmt->fetchAll();
 
-// Severity distribution
+
 $severityStmt = $pdo->prepare("
     SELECT severity, COUNT(*) AS count
     FROM incidents i
@@ -59,7 +59,7 @@ $severityStmt = $pdo->prepare("
 $severityStmt->execute($visibilityParams);
 $severityData = $severityStmt->fetchAll();
 
-// Barangay distribution (for admin view)
+
 $barangayData = [];
 if ($viewerRole === 'admin') {
     $barangayStmt = $pdo->prepare("

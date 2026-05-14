@@ -8,7 +8,7 @@ $viewerRole = $_SESSION['role'] ?? null;
 $viewerUserId = $_SESSION['user_id'] ?? null;
 $barangayName = null;
 
-// Validate role
+
 if (!in_array($viewerRole, ['admin', 'barangay'], true)) {
     http_response_code(403);
     echo 'Access denied.';

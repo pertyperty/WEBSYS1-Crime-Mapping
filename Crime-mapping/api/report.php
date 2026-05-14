@@ -78,9 +78,9 @@ if (!$barangayRow) {
 
 $occurredAt = $payload['occurred_date'] . ' ' . $payload['occurred_time'] . ':00';
 
-// Determine source and visibility
-// Officers/admins can file entries that are immediately visible (stored as source='verified').
-// Registered users file reports that start as pending (source='reported').
+
+
+
 $requestedSource = isset($payload['source']) ? (string) $payload['source'] : '';
 $isOfficerEntry = in_array($userRole, ['admin', 'barangay'], true) && $requestedSource === 'direct';
 $source = $isOfficerEntry ? 'verified' : 'reported';

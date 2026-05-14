@@ -53,7 +53,7 @@ $csrfToken = csrf_token();
         const csrfToken = <?php echo json_encode($csrfToken); ?>;
         const nextPage = new URLSearchParams(window.location.search).get("next");
 
-        // If a next param exists, propagate to register link so users can create account and be redirected back
+        
         (function propagateNextToRegister() {
             try {
                 const registerLink = document.querySelector('a[href="register.php"]');

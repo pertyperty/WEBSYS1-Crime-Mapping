@@ -3,18 +3,18 @@ require __DIR__ . '/guard.php';
 require __DIR__ . '/../api/db.php';
 init_secure_session();
 
-// Determine user role
+
 $userRole = $_SESSION['role'] ?? null;
 $barangayId = $_SESSION['barangay_id'] ?? null;
 $barangayName = null;
 
-// Validate role
+
 if (!in_array($userRole, ['admin', 'barangay'], true)) {
     header('Location: login.php');
     exit;
 }
 
-// Fetch barangay name for barangay users
+
 if ($userRole === 'barangay' && isset($barangayId)) {
     $stmt = $pdo->prepare('SELECT barangay_name FROM barangays WHERE barangay_id = :id');
     $stmt->execute([':id' => $barangayId]);
@@ -22,7 +22,7 @@ if ($userRole === 'barangay' && isset($barangayId)) {
     $barangayName = $result ? $result['barangay_name'] : null;
 }
 
-// Configuration per role
+
 $isAdmin = $userRole === 'admin';
 $isBarangay = $userRole === 'barangay';
 

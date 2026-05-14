@@ -434,7 +434,7 @@ $csrfToken = csrf_token();
             }
         });
 
-        // Load FAQs on page load
+        
         loadFAQs();
     </script>
 </body>

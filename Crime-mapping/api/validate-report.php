@@ -70,7 +70,7 @@ function ensureValidationStorage(PDO $pdo): void
     }
 }
 
-// Handle GET request - fetch counts and user reaction
+
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (!isset($_GET['incident_id'])) {
         http_response_code(400);
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $visibilityParams = [];
     $visibilityClause = buildIncidentVisibilityClause($viewerRole, $viewerUserId, $viewerBarangayId, $visibilityParams);
 
-    // Check if incident exists
+    
     $incidentStmt = $pdo->prepare('SELECT incident_id FROM incidents i WHERE i.incident_id = :id AND ' . $visibilityClause);
     $incidentStmt->execute(array_merge([':id' => $incidentId], $visibilityParams));
     if (!$incidentStmt->fetch()) {
@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         exit;
     }
 
-    // Get counts
+    
     $credibleStmt = $pdo->prepare('
         SELECT COUNT(*) as count FROM incident_validations
         WHERE incident_id = :incident_id AND reaction = "credible"
@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $notCredibleStmt->execute([':incident_id' => $incidentId]);
     $notCredibleCount = (int) $notCredibleStmt->fetch()['count'];
 
-    // Get user's reaction if logged in
+    
     $userReaction = null;
     $userId = $_SESSION['user_id'] ?? null;
 
@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $result = $userReactionStmt->fetch();
         $userReaction = $result ? $result['reaction'] : null;
     } else {
-        // Check guest token
+        
         if (isset($_COOKIE['guest_token'])) {
             $guestToken = $_COOKIE['guest_token'];
             $userReactionStmt = $pdo->prepare('
@@ -142,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
 }
 
-// Handle POST request - submit/toggle validation
+
 require_csrf_token();
 $pdo->beginTransaction();
 
@@ -185,7 +185,7 @@ $reaction = trim($payload['reaction']);
 $visibilityParams = [];
 $visibilityClause = buildIncidentVisibilityClause($viewerRole, $viewerUserId, $viewerBarangayId, $visibilityParams);
 
-// Validate reaction value
+
 $validReactions = ['credible', 'not_credible'];
 if (!in_array($reaction, $validReactions, true)) {
     if ($pdo->inTransaction()) {
@@ -196,7 +196,7 @@ if (!in_array($reaction, $validReactions, true)) {
     exit;
 }
 
-// Check if incident exists
+
 $incidentStmt = $pdo->prepare('SELECT incident_id FROM incidents i WHERE i.incident_id = :id AND ' . $visibilityClause);
 $incidentStmt->execute(array_merge([':id' => $incidentId], $visibilityParams));
 if (!$incidentStmt->fetch()) {
@@ -211,7 +211,7 @@ if (!$incidentStmt->fetch()) {
 $userId = $_SESSION['user_id'] ?? null;
 $guestToken = null;
 
-// If not logged in, use guest token (from cookie or generate new one)
+
 if (!$userId) {
     if (isset($_COOKIE['guest_token'])) {
         $guestToken = $_COOKIE['guest_token'];
@@ -227,7 +227,7 @@ if (!$userId) {
     }
 }
 
-// Check if user/guest already voted on this incident
+
 if ($userId) {
     $existingStmt = $pdo->prepare('
         SELECT validation_id, reaction FROM incident_validations
@@ -244,7 +244,7 @@ if ($userId) {
     $existing = $existingStmt->fetch();
 }
 
-// If same reaction, remove vote (toggle)
+
 if ($existing && $existing['reaction'] === $reaction) {
     $deleteStmt = $pdo->prepare('DELETE FROM incident_validations WHERE validation_id = :id');
     $deleteStmt->execute([':id' => $existing['validation_id']]);
@@ -280,7 +280,7 @@ if ($existing && $existing['reaction'] === $reaction) {
     $isRemoved = false;
 }
 
-// Get updated counts
+
 $credibleStmt = $pdo->prepare('
     SELECT COUNT(*) as count FROM incident_validations
     WHERE incident_id = :incident_id AND reaction = "credible"
@@ -295,7 +295,7 @@ $notCredibleStmt = $pdo->prepare('
 $notCredibleStmt->execute([':incident_id' => $incidentId]);
 $notCredibleCount = (int) $notCredibleStmt->fetch()['count'];
 
-// Get current user's reaction
+
 $userReaction = null;
 if ($userId) {
     $userReactionStmt = $pdo->prepare('

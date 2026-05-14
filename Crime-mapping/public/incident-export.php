@@ -85,7 +85,7 @@ function label_case(string $value): string {
     return ucwords(str_replace('_', ' ', $value));
 }
 
-// Generate case number from incident ID
+
 $caseNumber = 'CR-' . date('Y') . '-' . str_pad($incident['id'], 6, '0', STR_PAD_LEFT);
 $reportDate = new DateTime($incident['created_at']);
 $occurDate = new DateTime($incident['occurred_at']);
@@ -607,7 +607,7 @@ $occurDate = new DateTime($incident['occurred_at']);
     </div>
 
     <script>
-        // Auto-print on load
+        
         window.addEventListener('load', () => {
             window.print();
         });

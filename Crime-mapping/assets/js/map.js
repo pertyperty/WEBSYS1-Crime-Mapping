@@ -43,7 +43,6 @@ try {
 }
 
 const markersLayer = L.layerGroup().addTo(map);
-// Keep the map free to pan/zoom normally.
 const typeFilters = document.getElementById("type-filters");
 const barangayFilter = document.getElementById("barangay-filter");
 const searchInput = document.getElementById("search-input");
@@ -64,9 +63,7 @@ const toggleFiltersBtn = document.getElementById('toggle-filters');
 const hamburgerFiltersBtn = document.getElementById('hamburger-filters');
 const mapShell = document.querySelector('.map-shell');
 
-// Make panels overlay on narrower screens or when user toggles
 function ensureOverlayMode() {
-    // Use overlay mode for desktop too so filters/details float as overlays
     if (filtersPanel) filtersPanel.classList.add('overlay');
     if (detailsPanel) detailsPanel.classList.add('overlay');
 }
@@ -85,35 +82,30 @@ if (toggleFiltersBtn && filtersPanel) {
     toggleFiltersBtn.addEventListener('click', () => {
         const isOpen = filtersPanel.classList.toggle('is-open');
         syncMapChrome();
-        // focus first input when opened
         if (isOpen) {
             const input = filtersPanel.querySelector('input, select, button');
             if (input) input.focus();
         }
         showHamburger(!isOpen);
-        // allow CSS transition, then update map size
         setTimeout(() => { try { map.invalidateSize(); } catch(e){} }, 300);
     });
 }
 
 if (hamburgerFiltersBtn && filtersPanel) {
     hamburgerFiltersBtn.addEventListener('click', () => {
-        // open/close filters overlay
         const isOpen = filtersPanel.classList.toggle('is-open');
         syncMapChrome();
         if (isOpen) {
-            // ensure details panel is closed so filters are visible
             if (detailsPanel) detailsPanel.classList.remove('is-open');
             const input = filtersPanel.querySelector('input, select, button');
             if (input) input.focus();
         }
-        // hide hamburger when panel opens, show when closed
         showHamburger(!isOpen);
         setTimeout(() => { try { map.invalidateSize(); } catch(e){} }, 300);
     });
 }
 
-// Close button inside filters overlay
+
 const closeFiltersBtn = document.getElementById('close-filters');
 
 function showHamburger(visible) {
@@ -125,10 +117,10 @@ function showHamburger(visible) {
     }
 }
 
-// Keep hamburger visible initially
+
 showHamburger(true);
 
-// When filters open via toggle or hamburger, hide hamburger; when closed, show it
+
 function watchFilterPanel() {
     if (!filtersPanel) return;
     const observer = new MutationObserver(() => {
@@ -291,7 +283,7 @@ async function reverseGeocode(lat, lng) {
         const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}`);
         if (!resp.ok) return null;
         const json = await resp.json();
-        // prefer address.road + house_number + city
+        
         if (json && json.display_name) return json.display_name;
         return null;
     } catch (e) {
@@ -387,7 +379,7 @@ function buildReportBarangayOptions() {
         return;
     }
 
-    // If the reportBarangay is a select, populate options (kept hidden for guests).
+    
     if (reportBarangay.tagName && reportBarangay.tagName.toLowerCase() === 'select') {
         reportBarangay.innerHTML = "";
         barangays.forEach((barangay) => {
@@ -398,7 +390,7 @@ function buildReportBarangayOptions() {
         });
     }
 
-    // Ensure hidden input is present and set to empty by default
+    
     if (reportBarangayHidden) reportBarangayHidden.value = "";
 }
 
@@ -629,8 +621,8 @@ function viewImageFull(filePath) {
 }
 
 function openDetailModal(incident) {
-    // When opening the detail modal, avoid also populating the side details
-    // to prevent duplicate rendering. Ensure the side panel is closed.
+    
+    
     try { detailsPanel.classList.remove('is-open'); } catch (e) {}
     currentIncidentId = incident.id;
     updateExportLink(currentIncidentId);
@@ -672,11 +664,11 @@ async function refreshVisibleIncidentDetails() {
 
 function openReportPanel() {
     reportPanel.classList.add("is-open");
-    reportPanel.style.display = ""; // Ensure visible for authenticated users
+    reportPanel.style.display = ""; 
     detailsBody.classList.add("is-hidden");
     reportStatus.textContent = "";
     
-    // Update form title based on user role
+    
     const reportHeaderTitle = reportPanel.querySelector('h2');
     if (reportHeaderTitle) {
         if (window.userRole === 'admin' || window.userRole === 'barangay') {
@@ -940,21 +932,21 @@ notCredibleBtn?.addEventListener("click", () => {
     submitValidation("not_credible");
 });
 
-// Verify / Escalate buttons (barangay/admin controls)
+
 const verifyBtnEl = document.getElementById("verify-btn");
 const escalateBtnEl = document.getElementById("escalate-btn");
 const userRole = window.userRole || null;
 
-// Hide verify/escalate controls for unauthorized clients as an extra safety layer.
+
 if (verifyBtnEl || escalateBtnEl) {
-    // If no userRole from server, hide the buttons.
+    
     if (!userRole || (userRole !== 'admin' && userRole !== 'barangay')) {
         verifyBtnEl?.classList.add('hidden');
         escalateBtnEl?.classList.add('hidden');
         if (verifyBtnEl) verifyBtnEl.style.display = 'none';
         if (escalateBtnEl) escalateBtnEl.style.display = 'none';
     } else {
-        // Ensure visible when authorized (admin/barangay)
+        
         if (verifyBtnEl) verifyBtnEl.style.display = '';
         if (escalateBtnEl) escalateBtnEl.style.display = '';
     }
@@ -1126,7 +1118,7 @@ if (reportCoords) {
     });
 }
 
-// Restore pending report after login/register if present
+
 (function tryRestorePendingReport() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('resume_report')) {
@@ -1137,7 +1129,7 @@ if (reportCoords) {
             if (draft.latitude && draft.longitude) {
                 const latlng = L.latLng(draft.latitude, draft.longitude);
                 syncTemporaryMarker(latlng);
-                // populate fields
+                
                 if (draft.crime_type_id) reportType.value = draft.crime_type_id;
                 if (draft.title) reportTitle.value = draft.title;
                 if (draft.description) reportDescription.value = draft.description;
@@ -1156,11 +1148,11 @@ if (reportCoords) {
     }
 })();
 
-// Open details panel at clicked location and show nearby pins or message
+
 map.on('click', (event) => {
     try {
         const latlng = event.latlng;
-        // find incidents within 50 meters
+        
         const nearby = incidents.filter(i => {
             if (!i.lat || !i.lng) return false;
             try {
@@ -1170,7 +1162,7 @@ map.on('click', (event) => {
             }
         });
 
-        // ensure details panel is overlay and visible
+        
         if (detailsPanel) {
             detailsPanel.classList.add('is-open');
             detailsPanel.classList.add('overlay');
@@ -1182,15 +1174,15 @@ map.on('click', (event) => {
         const validationPanelEl = document.querySelector('.validation-panel');
 
             if (nearby.length === 0) {
-            // hide validation UI when there are no incidents at clicked location
+            
             if (validationPanelEl) validationPanelEl.style.display = 'none';
 
-            // Allow anyone (including guests) to place a temporary marker and open report form.
+            
             try {
                 syncTemporaryMarker(latlng);
                 openReportPanel();
 
-                // reverse geocode and try to infer barangay from address
+                
                 try {
                     reverseGeocode(latlng.lat, latlng.lng).then(addr => {
                         if (reportCoords) reportCoords.value = addr || formatLatLng(latlng);
@@ -1209,13 +1201,13 @@ map.on('click', (event) => {
             }
             return;
         }
-        // hide validation until a specific incident is selected from the nearby list
+        
         if (validationPanelEl) validationPanelEl.style.display = 'none';
         currentIncidentId = null;
         clearValidationPanelState();
 
         detailsTitle.textContent = `${nearby.length} incident${nearby.length>1?'s':''} nearby`;
-        // build a simple clickable list
+        
         const list = document.createElement('div');
         list.style.display = 'flex';
         list.style.flexDirection = 'column';
@@ -1228,7 +1220,7 @@ map.on('click', (event) => {
             btn.style.textAlign = 'left';
             btn.textContent = `${inc.title || 'Untitled'} — ${inc.barangay || ''}`;
             btn.addEventListener('click', () => {
-                // pan map to marker and open detail sidebar
+                
                 try {
                     map.setView([inc.lat, inc.lng], Math.max(map.getZoom(), 15));
                 } catch (e) {}
@@ -1276,7 +1268,7 @@ if (reportForm) {
             longitude: reportLatLng.lng
         };
 
-        // Guest redirect + draft save
+        
         if (!window.currentUser || !window.currentUser.id) {
             try {
                 sessionStorage.setItem('pending_report', JSON.stringify(draft));
@@ -1290,7 +1282,7 @@ if (reportForm) {
             }
         }
 
-        // Authenticated user submit
+        
         const payload = {
             crime_type_id: draft.crime_type_id,
             title: draft.title,
@@ -1321,7 +1313,7 @@ if (reportForm) {
                 return;
             }
 
-            // Upload images if any were selected
+            
             const reportImagesInput = document.getElementById('report-images');
             if (reportImagesInput && reportImagesInput.files && reportImagesInput.files.length > 0) {
                 const incidentId = result.data?.incident_id;
@@ -1360,10 +1352,10 @@ if (reportForm) {
             reportLatLng = null;
             if (reportCoords) reportCoords.value = "";
             
-            // Clear pending draft if any
+            
             try { sessionStorage.removeItem('pending_report'); } catch(e){}
             
-            // Close the form and reload incidents
+            
             closeReportPanel();
             loadIncidents();
             setTimeout(() => { if (reportStatus) reportStatus.textContent = ''; }, 2500);
@@ -1376,9 +1368,9 @@ if (reportForm) {
 
 loadFilters().then(() => {
     console.log("Filters loaded successfully");
-    // If in barangay mode, set up barangay-specific filtering
+    
     if (isBarangayMode && userBarangayName) {
-        // Set the barangay filter to the user's assigned barangay
+        
         if (barangayFilter) {
             barangayFilter.value = userBarangayName;
             barangayFilter.disabled = true;
@@ -1390,11 +1382,11 @@ loadFilters().then(() => {
             barangayFilterNotice.textContent = `Limited to your barangay: ${userBarangayName}`;
         }
         
-        // Pre-select barangay in report form
+        
         if (reportBarangay) {
             reportBarangay.value = userBarangayName;
             
-            // Hide the barangay selection in report form (only show in read-only mode)
+            
             const reportBarangayGroup = reportBarangay.closest('label');
             if (reportBarangayGroup) {
                 reportBarangay.disabled = true;
@@ -1406,15 +1398,15 @@ loadFilters().then(() => {
     
     console.log("Loading incidents...");
     loadIncidents().then(() => {
-        // Check if an incident ID is in the query parameters
+        
         const urlParams = new URLSearchParams(window.location.search);
         const incidentId = urlParams.get('incident');
         if (incidentId) {
             console.log(`Auto-loading incident ${incidentId}`);
-            // Find the incident in the loaded incidents
+            
             const incident = incidents.find(i => i.id == incidentId);
             if (incident) {
-                // Wait a bit for the map to render, then open the detail
+                
                 setTimeout(() => {
                     openDetailModal(incident);
                 }, 500);
@@ -1423,6 +1415,6 @@ loadFilters().then(() => {
     });
 }).catch(error => {
     console.error("Error in initialization:", error);
-    // Ensure incidents still load even if filters failed
+    
     try { loadIncidents(); } catch (e) { console.error('Failed to load incidents after filters error', e); }
 });

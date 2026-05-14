@@ -28,7 +28,7 @@ if ($identity === '' || $password === '') {
     exit;
 }
 
-// Simple session-based rate limiting
+
 $_SESSION['login_attempts'] = $_SESSION['login_attempts'] ?? 0;
 $_SESSION['last_login_attempt'] = $_SESSION['last_login_attempt'] ?? 0;
 $now = time();
@@ -42,10 +42,10 @@ $stmt = $pdo->prepare('SELECT user_id, username, email, password_hash, role, bar
 $stmt->execute([':identity' => $identity]);
 $user = $stmt->fetch();
 
-// Use a dummy hash to mitigate timing attacks when user not found
-$dummyHash = '$2y$10$KbQi8G1h5Y6Gf0hXw1qKieJfCz1wK4Adh9vGZQ8YxQ6ZfI8pQx1a.'; // precomputed dummy
+
+$dummyHash = '$2y$10$KbQi8G1h5Y6Gf0hXw1qKieJfCz1wK4Adh9vGZQ8YxQ6ZfI8pQx1a.'; 
 if (!$user) {
-    // run password_verify against dummy to keep timing consistent
+    
     password_verify($password, $dummyHash);
     $_SESSION['login_attempts']++;
     $_SESSION['last_login_attempt'] = $now;
@@ -82,7 +82,7 @@ if ($user['role'] === 'admin' || $user['role'] === 'barangay') {
     $redirect = 'dashboard.php';
 }
 
-// If a next param is provided in the payload, honor safe relative redirects
+
 $next = $payload['next'] ?? null;
 if (is_string($next) && $next) {
     if (strpos($next, '://') === false && strpos($next, '//') !== 0) {

@@ -4,7 +4,7 @@ require __DIR__ . '/security.php';
 require __DIR__ . '/db.php';
 init_secure_session();
 
-// Check authorization - admin or barangay only
+
 $role = $_SESSION['role'] ?? null;
 if ($role !== 'admin' && $role !== 'barangay') {
     http_response_code(403);
@@ -17,7 +17,7 @@ $month = $_GET['month'] ?? date('Y-m');
 $barangayId = $_GET['barangay_id'] ?? null;
 $crimeType = $_GET['crime_type'] ?? null;
 
-// For barangay users, restrict to their assigned barangay
+
 if ($role === 'barangay') {
     $barangayId = $_SESSION['barangay_id'];
 }
@@ -25,7 +25,7 @@ if ($role === 'barangay') {
 $data = [];
 
 if ($reportType === 'monthly') {
-    // Monthly report: incidents by status and severity
+    
     $query = 'SELECT status, severity, COUNT(*) as count FROM incidents WHERE 1=1';
     $params = [];
     
@@ -51,7 +51,7 @@ if ($reportType === 'monthly') {
         'incidents_by_status' => $results
     ];
 } elseif ($reportType === 'area') {
-    // Area report: incidents by barangay
+    
     $query = 'SELECT b.barangay_name, COUNT(i.incident_id) as count, AVG(i.severity = "high") * 100 as high_severity_pct FROM barangays b LEFT JOIN incidents i ON b.barangay_id = i.barangay_id WHERE 1=1';
     $params = [];
     
@@ -75,7 +75,7 @@ if ($reportType === 'monthly') {
         'barangay_stats' => $results
     ];
 } elseif ($reportType === 'crime') {
-    // Crime type report: incidents by crime category
+    
     $query = 'SELECT ct.category, ct.type_name, COUNT(i.incident_id) as count FROM crime_types ct LEFT JOIN incidents i ON ct.crime_type_id = i.crime_type_id WHERE 1=1';
     $params = [];
     
@@ -104,7 +104,7 @@ if ($reportType === 'monthly') {
         'crime_stats' => $results
     ];
 } elseif ($reportType === 'forensics') {
-    // Forensics: detailed incident data for investigation
+    
     $query = 'SELECT i.incident_id, i.title, i.description, i.severity, i.status, i.occurred_at, b.barangay_name, ct.type_name, COUNT(img.image_id) as image_count, COUNT(val.validation_id) as validation_count FROM incidents i LEFT JOIN barangays b ON i.barangay_id = b.barangay_id LEFT JOIN crime_types ct ON i.crime_type_id = ct.crime_type_id LEFT JOIN incident_images img ON i.incident_id = img.incident_id LEFT JOIN incident_validations val ON i.incident_id = val.incident_id WHERE i.status IN ("under_investigation", "action_taken")';
     $params = [];
     
@@ -133,7 +133,7 @@ if ($reportType === 'monthly') {
         'active_investigations' => $results
     ];
 } else {
-    // Summary report
+    
     $query = 'SELECT COUNT(*) as total, SUM(severity = "high") as high_severity, SUM(status = "resolved") as resolved, SUM(status = "pending") as pending FROM incidents WHERE 1=1';
     $params = [];
     

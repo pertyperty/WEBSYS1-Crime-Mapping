@@ -3,14 +3,14 @@ require __DIR__ . '/../api/security.php';
 require __DIR__ . '/../api/db.php';
 init_secure_session();
 
-// Determine user role
+
 $userRole = $_SESSION['role'] ?? null;
 $userId = $_SESSION['user_id'] ?? null;
 $username = $_SESSION['username'] ?? null;
 $barangayId = $_SESSION['barangay_id'] ?? null;
 $barangayName = null;
 
-// Fetch barangay name for barangay users
+
 if ($userRole === 'barangay' && isset($barangayId)) {
     $stmt = $pdo->prepare('SELECT barangay_name FROM barangays WHERE barangay_id = :id');
     $stmt->execute([':id' => $barangayId]);
@@ -20,7 +20,7 @@ if ($userRole === 'barangay' && isset($barangayId)) {
 
 $csrfToken = csrf_token();
 
-// Configuration per role
+
 $filterHeaderEyebrow = 'Filters';
 $filterHeaderTitle = 'Crime Map';
 $mapSubtitle = 'Interactive map view';
@@ -29,7 +29,7 @@ $isBarangayFiltered = false;
 $showPendingStatus = false;
 $showDetailsHeader = false;
 $validationLabel = 'Is this report accurate?';
-$validationButtons = 'public'; // public, admin, or barangay
+$validationButtons = 'public'; 
 $showReportCrimeButton = true;
 $showExportPdf = false;
 

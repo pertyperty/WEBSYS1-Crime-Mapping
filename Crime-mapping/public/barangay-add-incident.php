@@ -130,11 +130,11 @@ $csrfToken = csrf_token();
             }
         }
 
-        // Set default date to today
+        
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('incident-date').value = today;
 
-        // Load crime types
+        
         async function loadCrimeTypes() {
             try {
                 const resp = await fetch(`${apiBase}/filters.php`);
@@ -174,8 +174,8 @@ $csrfToken = csrf_token();
                     return;
                 }
 
-                // Get barangay name from session (set server-side) or from coordinates
-                // For now, we'll send as part of the payload and server validates
+                
+                
                 const payload = {
                     crime_type_id: parseInt(document.getElementById('crime-type').value),
                     title: document.getElementById('incident-title').value.trim(),
@@ -203,7 +203,7 @@ $csrfToken = csrf_token();
                     return;
                 }
 
-                // Upload images if any were selected
+                
                 const imageInput = document.getElementById('incident-images');
                 if (imageInput && imageInput.files && imageInput.files.length > 0) {
                     const incidentId = result.data?.incident_id;

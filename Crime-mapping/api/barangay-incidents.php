@@ -6,7 +6,7 @@ init_secure_session();
 require __DIR__ . '/db.php';
 require __DIR__ . '/incidents-repository.php';
 
-// Check authentication
+
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'barangay') {
     http_response_code(401);
     echo json_encode(['ok' => false, 'error' => 'Unauthorized.']);

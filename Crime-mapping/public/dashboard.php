@@ -3,20 +3,20 @@ require __DIR__ . '/guard.php';
 require __DIR__ . '/../api/db.php';
 init_secure_session();
 
-// Determine user role
+
 $userRole = $_SESSION['role'] ?? null;
 $userId = $_SESSION['user_id'] ?? null;
 $username = $_SESSION['username'] ?? null;
 $barangayId = $_SESSION['barangay_id'] ?? null;
 $barangayName = null;
 
-// Validate role
+
 if (!in_array($userRole, ['admin', 'barangay'], true)) {
     header('Location: login.php');
     exit;
 }
 
-// Fetch barangay name for barangay users
+
 if ($userRole === 'barangay' && isset($barangayId)) {
     $stmt = $pdo->prepare('SELECT barangay_name FROM barangays WHERE barangay_id = :id');
     $stmt->execute([':id' => $barangayId]);
@@ -26,7 +26,7 @@ if ($userRole === 'barangay' && isset($barangayId)) {
 
 $csrfToken = csrf_token();
 
-// Configuration per role
+
 $isAdmin = $userRole === 'admin';
 $isBarangay = $userRole === 'barangay';
 
@@ -51,7 +51,7 @@ $kpiFourth = $isAdmin ? 'High severity alerts' : 'High risk areas';
 $footerTitle = $isAdmin ? 'Admin oversight dashboard' : 'Barangay operations dashboard';
 $footerSubtitle = $isAdmin ? 'Keep the system accurate and transparent.' : 'Update reports promptly to keep the community informed.';
 
-// Determine which KPI fields are shown
+
 $showKpiFields = $isAdmin 
     ? ['total', 'active', 'resolved', 'high_severity']
     : ['pending', 'active', 'resolved_month', 'high_risk'];
@@ -233,7 +233,7 @@ $showKpiFields = $isAdmin
         const apiBase = '../api';
         const isAdmin = <?php echo $isAdmin ? 'true' : 'false'; ?>;
 
-        // ── Custom date picker ───────────────────────────────────
+        
         const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
         const MONTH_SHORT  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -290,7 +290,7 @@ $showKpiFields = $isAdmin
         });
 
         syncTrigger();
-        // ────────────────────────────────────────────────────────
+        
 
         function formatMonth(ym) {
             if (!ym) return ym;
@@ -430,7 +430,7 @@ $showKpiFields = $isAdmin
             });
         });
 
-        // ── Analytics Charts ───────────────────────────────────
+        
         const chartColors = {
             violent: '#f43f5e',
             property: '#facc15',
@@ -466,7 +466,7 @@ $showKpiFields = $isAdmin
 
                 const data = result.data;
 
-                // Crime Types Chart
+                
                 const crimeTypesCtx = document.getElementById('crime-types-chart');
                 if (crimeTypesCtx && data.crime_types && data.crime_types.length > 0) {
                     if (crimeTypesChart) crimeTypesChart.destroy();
@@ -498,7 +498,7 @@ $showKpiFields = $isAdmin
                     });
                 }
 
-                // Status Chart
+                
                 const statusCtx = document.getElementById('status-chart');
                 if (statusCtx && data.status && data.status.length > 0) {
                     if (statusChart) statusChart.destroy();
@@ -530,7 +530,7 @@ $showKpiFields = $isAdmin
                     });
                 }
 
-                // Severity Chart
+                
                 const severityCtx = document.getElementById('severity-chart');
                 if (severityCtx && data.severity && data.severity.length > 0) {
                     if (severityChart) severityChart.destroy();
@@ -562,7 +562,7 @@ $showKpiFields = $isAdmin
                     });
                 }
 
-                // Barangay Chart (admin only)
+                
                 if (isAdmin) {
                     const barangayCtx = document.getElementById('barangay-chart');
                     if (barangayCtx && data.barangays && data.barangays.length > 0) {

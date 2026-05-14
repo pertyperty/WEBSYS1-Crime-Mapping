@@ -3,7 +3,7 @@ require __DIR__ . '/../api/security.php';
 require __DIR__ . '/../api/db.php';
 init_secure_session();
 
-// Determine user role for navbar
+
 $userRole = $_SESSION['role'] ?? 'public';
 ?>
 <!DOCTYPE html>

@@ -28,7 +28,7 @@ require __DIR__ . '/sms-helper.php';
 
 ensure_notifications_sms_columns($pdo);
 
-// Check authentication
+
 if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
     echo json_encode(['ok' => false, 'error' => 'Unauthorized.']);
@@ -61,7 +61,7 @@ $newStatus = trim($payload['new_status']);
 $remarks = isset($payload['remarks']) ? trim($payload['remarks']) : '';
 $makePublic = !empty($payload['make_public']);
 
-// Validate status value
+
 $validStatuses = ['pending', 'under_investigation', 'action_taken', 'resolved', 'dismissed'];
 if (!in_array($newStatus, $validStatuses, true)) {
     http_response_code(422);
@@ -69,7 +69,7 @@ if (!in_array($newStatus, $validStatuses, true)) {
     exit;
 }
 
-// Get incident details
+
 $incidentStmt = $pdo->prepare('
     SELECT i.incident_id, i.barangay_id, i.status
     FROM incidents i
@@ -84,7 +84,7 @@ if (!$incident) {
     exit;
 }
 
-// Check authorization: admin or barangay user of that barangay
+
 $userRole = $_SESSION['role'] ?? null;
 $userBarangayId = $_SESSION['barangay_id'] ?? null;
 
@@ -94,7 +94,7 @@ if ($userRole !== 'admin' && ($userRole !== 'barangay' || $userBarangayId != $in
     exit;
 }
 
-// Update incident status
+
 $updateStmt = $pdo->prepare('
     UPDATE incidents
     SET status = :status,
@@ -107,7 +107,7 @@ $updateStmt->execute([
     ':incident_id' => $incidentId
 ]);
 
-// Insert log entry
+
 $logStmt = $pdo->prepare('
     INSERT INTO incident_logs (incident_id, action, remarks, created_by)
     VALUES (:incident_id, :action, :remarks, :created_by)

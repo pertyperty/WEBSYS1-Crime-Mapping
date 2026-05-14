@@ -31,7 +31,7 @@ const carouselTrack = document.getElementById("crime-carousel-track");
 const carouselStatus = document.getElementById("crime-carousel-status");
 const miniMapLegend = document.getElementById("mini-map-legend");
 
-let carouselIsLoading = true; // Track if images are still loading
+let carouselIsLoading = true; 
 
 function escapeHtml(value) {
     return String(value ?? "")
@@ -348,7 +348,7 @@ function setupCarouselControls() {
 }
 
 async function loadRecentCrimeImages(incidents) {
-    renderImageCarousel([], true); // Show placeholder with loading message
+    renderImageCarousel([], true); 
 
     const slides = [];
     const candidates = incidents.slice(0, 8);
@@ -373,7 +373,7 @@ async function loadRecentCrimeImages(incidents) {
         }
     }
 
-    renderImageCarousel(slides, false); // Mark loading as complete
+    renderImageCarousel(slides, false); 
 }
 
 function renderFeed(incidents) {

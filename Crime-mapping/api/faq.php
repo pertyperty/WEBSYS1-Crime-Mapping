@@ -4,12 +4,12 @@ require __DIR__ . '/security.php';
 require __DIR__ . '/db.php';
 init_secure_session();
 
-// GET: Fetch FAQs for public display or admin
+
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $includeInactive = filter_var($_GET['include_inactive'] ?? false, FILTER_VALIDATE_BOOLEAN);
     $role = $_SESSION['role'] ?? 'public';
     
-    // Public can only see active FAQs
+    
     if ($role !== 'admin' && !$includeInactive) {
         $stmt = $pdo->prepare('
             SELECT faq_id,
@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             ORDER BY category ASC, sort_order ASC
         ');
     } else {
-        // Admin can see all FAQs
+        
         $stmt = $pdo->prepare('
             SELECT faq_id,
                 COALESCE(question, "") AS question,
@@ -45,11 +45,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
 }
 
-// POST: Admin only - add/update/delete FAQ
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf_token();
     
-    // Check admin role
+    
     if (($_SESSION['role'] ?? null) !== 'admin') {
         http_response_code(403);
         echo json_encode(['ok' => false, 'error' => 'Unauthorized.']);
